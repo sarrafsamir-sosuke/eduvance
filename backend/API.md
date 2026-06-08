@@ -12,6 +12,13 @@ Para rotas protegidas, envie o token JWT no header:
 Authorization: Bearer SEU_TOKEN
 ```
 
+## Formato das respostas
+
+- Todas as rotas retornam JSON.
+- Erros retornam pelo menos o campo `message`.
+- Rotas protegidas usam token JWT no header `Authorization`.
+- Nenhuma rota deve retornar o campo `senha` do usuario.
+
 ## Auth
 
 ### Registrar usuario
