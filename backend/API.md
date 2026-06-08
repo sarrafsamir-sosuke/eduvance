@@ -523,3 +523,136 @@ Resposta de exemplo:
   }
 ]
 ```
+
+## Admin
+
+Todas as rotas admin precisam de token JWT de um usuario com `tipo: "admin"`.
+
+### Dashboard administrativo
+
+- Metodo: `GET`
+- URL: `/api/admin/dashboard`
+- Precisa de token: sim
+- Quem pode acessar: admin
+
+Resposta de exemplo:
+
+```json
+{
+  "totalUsuarios": 120,
+  "totalAlunos": 100,
+  "totalProfessores": 18,
+  "totalAdmins": 2,
+  "totalDisciplinas": 8,
+  "totalAulas": 40,
+  "totalQuizzes": 12,
+  "totalAulasConcluidas": 350,
+  "totalQuizzesRespondidos": 210,
+  "mediaXPAlunos": 740,
+  "top5AlunosPorXP": [
+    {
+      "_id": "ID_DO_ALUNO",
+      "nome": "Maria Silva",
+      "email": "maria@email.com",
+      "xp": 3200,
+      "nivel": 4,
+      "streak": 7,
+      "totalAulasConcluidas": 22
+    }
+  ]
+}
+```
+
+### Listar usuarios
+
+- Metodo: `GET`
+- URL: `/api/admin/users`
+- Precisa de token: sim
+- Quem pode acessar: admin
+
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DO_USUARIO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "tipo": "aluno",
+    "xp": 800,
+    "nivel": 2,
+    "streak": 4,
+    "totalAulasConcluidas": 12
+  }
+]
+```
+
+### Listar usuarios por tipo
+
+- Metodo: `GET`
+- URL: `/api/admin/users?tipo=aluno`
+- Precisa de token: sim
+- Quem pode acessar: admin
+
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DO_ALUNO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "tipo": "aluno",
+    "xp": 800,
+    "nivel": 2,
+    "streak": 4,
+    "totalAulasConcluidas": 12
+  }
+]
+```
+
+### Ranking de alunos
+
+- Metodo: `GET`
+- URL: `/api/admin/ranking`
+- Precisa de token: sim
+- Quem pode acessar: admin
+
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DO_ALUNO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "xp": 3200,
+    "nivel": 4,
+    "streak": 7,
+    "totalAulasConcluidas": 22
+  }
+]
+```
+
+### Ranking de alunos com limite
+
+- Metodo: `GET`
+- URL: `/api/admin/ranking?limit=10`
+- Precisa de token: sim
+- Quem pode acessar: admin
+
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DO_ALUNO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "xp": 3200,
+    "nivel": 4,
+    "streak": 7,
+    "totalAulasConcluidas": 22
+  }
+]
+```

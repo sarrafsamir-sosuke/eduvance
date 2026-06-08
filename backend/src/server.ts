@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 
 import { connectDatabase } from './config/database';
+import adminRoutes from './routes/admin.routes';
 import authRoutes from './routes/auth.routes';
 import aulaRoutes from './routes/aula.routes';
 import disciplinaRoutes from './routes/disciplina.routes';
@@ -27,6 +28,7 @@ app.use('/api/disciplinas', disciplinaRoutes);
 app.use('/api/aulas', aulaRoutes);
 app.use('/api/progresso', progressoRoutes);
 app.use('/api/quizzes', quizRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Rota inicial para testar rapidamente se a API esta online.
 app.get('/', (_request, response) => {
