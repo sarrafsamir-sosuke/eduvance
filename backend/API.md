@@ -731,3 +731,157 @@ Resposta de exemplo:
   }
 }
 ```
+
+## EduAI
+
+A EduAI usa resposta simulada quando `EDUAI_MODE=mock`.
+
+### Perguntar para EduAI
+
+- Metodo: `POST`
+- URL: `/api/eduai/perguntar`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Body:
+
+```json
+{
+  "pergunta": "Como resolver uma equacao do primeiro grau?",
+  "disciplinaContexto": "Matematica"
+}
+```
+
+Para continuar uma conversa existente, envie também:
+
+```json
+{
+  "conversaId": "ID_DA_CONVERSA",
+  "pergunta": "Pode dar outro exemplo?",
+  "disciplinaContexto": "Matematica"
+}
+```
+
+Resposta de exemplo:
+
+```json
+{
+  "resposta": "Essa é uma explicação da EduAI sobre: \"Como resolver uma equacao do primeiro grau?\". Vamos resolver passo a passo...",
+  "conversaId": "ID_DA_CONVERSA",
+  "aiPerguntasUsadas": 1,
+  "aiLimitePerguntas": 5,
+  "perguntasRestantes": 4
+}
+```
+
+Se o usuário atingir o limite do plano:
+
+```json
+{
+  "message": "Você atingiu o limite de perguntas da EduAI para o seu plano."
+}
+```
+
+### Listar conversas da EduAI
+
+- Metodo: `GET`
+- URL: `/api/eduai/conversas`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DA_CONVERSA",
+    "usuario": "ID_DO_USUARIO",
+    "titulo": "Como resolver uma equacao do primeiro grau?",
+    "disciplinaContexto": "Matematica",
+    "createdAt": "2026-06-08T03:00:00.000Z",
+    "updatedAt": "2026-06-08T03:00:00.000Z"
+  }
+]
+```
+
+### Buscar conversa por id
+
+- Metodo: `GET`
+- URL: `/api/eduai/conversas/:id`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+{
+  "conversa": {
+    "_id": "ID_DA_CONVERSA",
+    "usuario": "ID_DO_USUARIO",
+    "titulo": "Como resolver uma equacao do primeiro grau?",
+    "disciplinaContexto": "Matematica"
+  },
+  "mensagens": [
+    {
+      "_id": "ID_DA_MENSAGEM",
+      "role": "user",
+      "conteudo": "Como resolver uma equacao do primeiro grau?"
+    },
+    {
+      "_id": "ID_DA_MENSAGEM",
+      "role": "assistant",
+      "conteudo": "Essa é uma explicação da EduAI..."
+    }
+  ]
+}
+```
+
+### Ver limite da EduAI
+
+- Metodo: `GET`
+- URL: `/api/eduai/limite`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+{
+  "plano": "gratis",
+  "aiPerguntasUsadas": 1,
+  "aiLimitePerguntas": 5,
+  "perguntasRestantes": 4
+}
+```
+
+### Resetar limite da EduAI
+
+- Metodo: `PATCH`
+- URL: `/api/eduai/resetar-limite`
+- Precisa de token: sim
+- Quem pode acessar: admin
+
+Body:
+
+```json
+{
+  "userId": "ID_DO_USUARIO"
+}
+```
+
+Resposta de exemplo:
+
+```json
+{
+  "message": "Limite da EduAI resetado com sucesso.",
+  "user": {
+    "_id": "ID_DO_USUARIO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "tipo": "aluno",
+    "plano": "gratis",
+    "aiPerguntasUsadas": 0,
+    "aiLimitePerguntas": 5
+  }
+}
+```
