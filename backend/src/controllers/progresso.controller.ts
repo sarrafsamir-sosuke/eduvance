@@ -4,15 +4,11 @@ import { isValidObjectId } from 'mongoose';
 import Aula from '../models/Aula';
 import Progresso from '../models/Progresso';
 import User from '../models/User';
-
-const calcularNivel = (xp: number) => {
-  if (xp >= 4000) return 5;
-  if (xp >= 2000) return 4;
-  if (xp >= 1000) return 3;
-  if (xp >= 500) return 2;
-
-  return 1;
-};
+import {
+  calculateLevel,
+  calculateStreak,
+  getTodayDateBR,
+} from '../utils/gamification';
 
 const progressoPopulate = {
   path: 'aula',
@@ -21,6 +17,28 @@ const progressoPopulate = {
     path: 'disciplina',
     select: 'nome categoria emoji',
   },
+};
+
+const formatProgressUser = (user: {
+  _id: unknown;
+  nome: string;
+  email: string;
+  xp?: number;
+  nivel?: number;
+  streak?: number;
+  lastStudyDate?: string;
+  totalAulasConcluidas?: number;
+}) => {
+  return {
+    id: user._id,
+    nome: user.nome,
+    email: user.email,
+    xp: user.xp || 0,
+    nivel: user.nivel || 1,
+    streak: user.streak || 0,
+    lastStudyDate: user.lastStudyDate || null,
+    totalAulasConcluidas: user.totalAulasConcluidas || 0,
+  };
 };
 
 export const concluirAula = async (request: Request, response: Response) => {
@@ -51,12 +69,16 @@ export const concluirAula = async (request: Request, response: Response) => {
       return response.json({
         message: 'Aula ja concluida. XP nao foi somado novamente.',
         progresso: progressoExistente,
-        xpAtual: request.user.xp,
-        nivelAtual: request.user.nivel,
+        user: formatProgressUser(request.user),
       });
     }
 
     const xpReward = aula.xpReward || 0;
+    const today = getTodayDateBR();
+    const streakResult = calculateStreak(
+      request.user.streak || 0,
+      request.user.lastStudyDate,
+    );
 
     const progresso = await Progresso.findOneAndUpdate(
       {
@@ -79,13 +101,17 @@ export const concluirAula = async (request: Request, response: Response) => {
     );
 
     const novoXp = (request.user.xp || 0) + xpReward;
-    const novoNivel = calcularNivel(novoXp);
+    const novoNivel = calculateLevel(novoXp);
+    const totalAulasConcluidas = (request.user.totalAulasConcluidas || 0) + 1;
 
     const usuarioAtualizado = await User.findByIdAndUpdate(
       request.user._id,
       {
         xp: novoXp,
         nivel: novoNivel,
+        streak: streakResult.streak,
+        lastStudyDate: today,
+        totalAulasConcluidas,
       },
       {
         new: true,
@@ -96,11 +122,57 @@ export const concluirAula = async (request: Request, response: Response) => {
       message: 'Aula concluida com sucesso.',
       progresso,
       xpGanho: xpReward,
-      usuario: usuarioAtualizado,
+      user: usuarioAtualizado ? formatProgressUser(usuarioAtualizado) : null,
     });
   } catch (error) {
     return response.status(500).json({
       message: 'Erro ao concluir aula.',
+      error,
+    });
+  }
+};
+
+export const getResumoProgresso = async (
+  request: Request,
+  response: Response,
+) => {
+  try {
+    if (!request.user) {
+      return response.status(401).json({ message: 'Usuario nao autenticado.' });
+    }
+
+    const totalAulasDisponiveis = await Aula.countDocuments();
+    const totalAulasConcluidas = await Progresso.countDocuments({
+      usuario: request.user._id,
+      assistida: true,
+    });
+
+    const percentualConcluido =
+      totalAulasDisponiveis > 0
+        ? Math.round((totalAulasConcluidas / totalAulasDisponiveis) * 100)
+        : 0;
+
+    const progressosRecentes = await Progresso.find({
+      usuario: request.user._id,
+      assistida: true,
+    })
+      .populate(progressoPopulate)
+      .sort({ concluidaEm: -1, updatedAt: -1 })
+      .limit(5);
+
+    return response.json({
+      xp: request.user.xp || 0,
+      nivel: request.user.nivel || 1,
+      streak: request.user.streak || 0,
+      lastStudyDate: request.user.lastStudyDate || null,
+      totalAulasConcluidas,
+      totalAulasDisponiveis,
+      percentualConcluido,
+      progressosRecentes,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: 'Erro ao buscar resumo do progresso.',
       error,
     });
   }

@@ -179,6 +179,33 @@ Body:
 
 Observacao: se a aula ja estiver concluida pelo usuario, o XP nao sera somado novamente.
 
+Resposta de exemplo:
+
+```json
+{
+  "message": "Aula concluida com sucesso.",
+  "progresso": {
+    "usuario": "ID_DO_USUARIO",
+    "aula": "ID_DA_AULA",
+    "assistida": true,
+    "percentual": 100,
+    "xpGanho": 50,
+    "concluidaEm": "2026-06-08T03:00:00.000Z"
+  },
+  "xpGanho": 50,
+  "user": {
+    "id": "ID_DO_USUARIO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "xp": 550,
+    "nivel": 2,
+    "streak": 3,
+    "lastStudyDate": "2026-06-08",
+    "totalAulasConcluidas": 11
+  }
+}
+```
+
 Regras de nivel:
 
 - Nivel 1: 0 XP
@@ -186,6 +213,9 @@ Regras de nivel:
 - Nivel 3: 1000 XP
 - Nivel 4: 2000 XP
 - Nivel 5: 4000 XP
+- Nivel 6: 7000 XP
+- Nivel 7: 11000 XP
+- Nivel 8: 16000 XP
 
 ### Listar meu progresso
 
@@ -194,9 +224,88 @@ Regras de nivel:
 - Precisa de token: sim
 - Quem pode acessar: aluno, professor e admin
 
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DO_PROGRESSO",
+    "usuario": "ID_DO_USUARIO",
+    "aula": {
+      "_id": "ID_DA_AULA",
+      "titulo": "Introducao a fracoes",
+      "disciplina": {
+        "_id": "ID_DA_DISCIPLINA",
+        "nome": "Matematica",
+        "categoria": "Exatas",
+        "emoji": "📐"
+      },
+      "xpReward": 50
+    },
+    "assistida": true,
+    "percentual": 100,
+    "xpGanho": 50
+  }
+]
+```
+
+### Resumo do meu progresso
+
+- Metodo: `GET`
+- URL: `/api/progresso/resumo`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+{
+  "xp": 550,
+  "nivel": 2,
+  "streak": 3,
+  "lastStudyDate": "2026-06-08",
+  "totalAulasConcluidas": 11,
+  "totalAulasDisponiveis": 40,
+  "percentualConcluido": 28,
+  "progressosRecentes": [
+    {
+      "_id": "ID_DO_PROGRESSO",
+      "aula": {
+        "_id": "ID_DA_AULA",
+        "titulo": "Introducao a fracoes",
+        "disciplina": {
+          "_id": "ID_DA_DISCIPLINA",
+          "nome": "Matematica",
+          "categoria": "Exatas",
+          "emoji": "📐"
+        }
+      },
+      "assistida": true,
+      "percentual": 100,
+      "xpGanho": 50
+    }
+  ]
+}
+```
+
 ### Buscar meu progresso em uma aula
 
 - Metodo: `GET`
 - URL: `/api/progresso/aulas/:aulaId`
 - Precisa de token: sim
 - Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo quando a aula ainda nao foi concluida:
+
+```json
+{
+  "aula": {
+    "_id": "ID_DA_AULA",
+    "titulo": "Introducao a fracoes"
+  },
+  "assistida": false,
+  "percentual": 0,
+  "xpGanho": 0,
+  "concluidaEm": null
+}
+```

@@ -12,6 +12,8 @@ export interface IUser extends Document {
   xp: number;
   nivel: number;
   streak: number;
+  lastStudyDate?: string;
+  totalAulasConcluidas: number;
 }
 
 const userSchema = new Schema<IUser>(
@@ -56,6 +58,14 @@ const userSchema = new Schema<IUser>(
       default: 1,
     },
     streak: {
+      type: Number,
+      default: 0,
+    },
+    // Guarda apenas a data do ultimo estudo no formato YYYY-MM-DD.
+    lastStudyDate: {
+      type: String,
+    },
+    totalAulasConcluidas: {
       type: Number,
       default: 0,
     },
