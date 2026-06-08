@@ -1,5 +1,7 @@
 import { Document, Schema, model } from 'mongoose';
 
+import { PlanType } from '../utils/plan';
+
 export type UserType = 'aluno' | 'professor' | 'admin';
 
 export interface IUser extends Document {
@@ -14,6 +16,9 @@ export interface IUser extends Document {
   streak: number;
   lastStudyDate?: string;
   totalAulasConcluidas: number;
+  plano: PlanType;
+  aiPerguntasUsadas: number;
+  aiLimitePerguntas: number;
 }
 
 const userSchema = new Schema<IUser>(
@@ -68,6 +73,19 @@ const userSchema = new Schema<IUser>(
     totalAulasConcluidas: {
       type: Number,
       default: 0,
+    },
+    plano: {
+      type: String,
+      enum: ['gratis', 'premium'],
+      default: 'gratis',
+    },
+    aiPerguntasUsadas: {
+      type: Number,
+      default: 0,
+    },
+    aiLimitePerguntas: {
+      type: Number,
+      default: 5,
     },
   },
   {

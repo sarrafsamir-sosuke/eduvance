@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { isValidObjectId } from 'mongoose';
+import { FilterQuery, isValidObjectId } from 'mongoose';
 
-import Aula from '../models/Aula';
+import Aula, { IAula } from '../models/Aula';
 import Disciplina from '../models/Disciplina';
+import { canAccessPlan, validPlans } from '../utils/plan';
 
 const aulaPopulate = [
   { path: 'disciplina', select: 'nome categoria emoji' },
@@ -21,6 +22,7 @@ export const createAula = async (request: Request, response: Response) => {
       ordem,
       duracao,
       xpReward,
+      planoMinimo = 'gratis',
     } = request.body;
 
     if (!titulo || !disciplina) {
@@ -31,6 +33,12 @@ export const createAula = async (request: Request, response: Response) => {
 
     if (!isValidObjectId(disciplina)) {
       return response.status(400).json({ message: 'Id da disciplina invalido.' });
+    }
+
+    if (!validPlans.includes(planoMinimo)) {
+      return response.status(400).json({
+        message: 'planoMinimo deve ser gratis ou premium.',
+      });
     }
 
     const disciplinaExists = await Disciplina.findById(disciplina);
@@ -52,6 +60,7 @@ export const createAula = async (request: Request, response: Response) => {
       ordem,
       duracao,
       xpReward,
+      planoMinimo,
     });
 
     const aulaCompleta = await Aula.findById(aula._id).populate(aulaPopulate);
@@ -68,7 +77,7 @@ export const createAula = async (request: Request, response: Response) => {
 export const listAulas = async (request: Request, response: Response) => {
   try {
     const { disciplina } = request.query;
-    const filter: { disciplina?: string } = {};
+    const filter: FilterQuery<IAula> = {};
 
     // Permite listar todas as aulas ou filtrar por uma disciplina especifica.
     if (typeof disciplina === 'string') {
@@ -77,6 +86,14 @@ export const listAulas = async (request: Request, response: Response) => {
       }
 
       filter.disciplina = disciplina;
+    }
+
+    // Aluno gratis ve apenas aulas gratis. Premium, professor e admin veem tudo.
+    if (
+      request.user?.tipo === 'aluno' &&
+      !canAccessPlan(request.user.plano, 'premium')
+    ) {
+      filter.$or = [{ planoMinimo: 'gratis' }, { planoMinimo: { $exists: false } }];
     }
 
     const aulas = await Aula.find(filter)
@@ -106,6 +123,15 @@ export const getAulaById = async (request: Request, response: Response) => {
       return response.status(404).json({ message: 'Aula nao encontrada.' });
     }
 
+    if (
+      request.user?.tipo === 'aluno' &&
+      !canAccessPlan(request.user.plano, aula.planoMinimo)
+    ) {
+      return response.status(403).json({
+        message: 'Esta aula é exclusiva para usuários premium.',
+      });
+    }
+
     return response.json(aula);
   } catch (error) {
     return response.status(500).json({
@@ -127,6 +153,15 @@ export const updateAula = async (request: Request, response: Response) => {
       return response.status(400).json({ message: 'Id da disciplina invalido.' });
     }
 
+    if (
+      request.body.planoMinimo !== undefined &&
+      !validPlans.includes(request.body.planoMinimo)
+    ) {
+      return response.status(400).json({
+        message: 'planoMinimo deve ser gratis ou premium.',
+      });
+    }
+
     const allowedFields = [
       'titulo',
       'descricao',
@@ -137,6 +172,7 @@ export const updateAula = async (request: Request, response: Response) => {
       'ordem',
       'duracao',
       'xpReward',
+      'planoMinimo',
     ];
 
     const updateData: Record<string, unknown> = {};

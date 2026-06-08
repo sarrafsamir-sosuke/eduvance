@@ -1,5 +1,7 @@
 import { Document, Schema, Types, model } from 'mongoose';
 
+import { PlanType } from '../utils/plan';
+
 export interface IQuestaoQuiz {
   pergunta: string;
   alternativas: string[];
@@ -16,6 +18,7 @@ export interface IQuiz extends Document {
   questoes: IQuestaoQuiz[];
   xpPorAcerto: number;
   ativo: boolean;
+  planoMinimo: PlanType;
 }
 
 const questaoSchema = new Schema<IQuestaoQuiz>(
@@ -87,6 +90,11 @@ const quizSchema = new Schema<IQuiz>(
     ativo: {
       type: Boolean,
       default: true,
+    },
+    planoMinimo: {
+      type: String,
+      enum: ['gratis', 'premium'],
+      default: 'gratis',
     },
   },
   {

@@ -111,9 +111,12 @@ Body:
   "modulo": "Modulo 1",
   "ordem": 1,
   "duracao": 12,
-  "xpReward": 50
+  "xpReward": 50,
+  "planoMinimo": "gratis"
 }
 ```
+
+`planoMinimo` pode ser `"gratis"` ou `"premium"`. Aulas premium so podem ser acessadas por usuarios premium, professores e admins.
 
 ### Listar aulas
 
@@ -328,6 +331,7 @@ Body:
   "disciplina": "ID_DA_DISCIPLINA",
   "aula": "ID_DA_AULA",
   "xpPorAcerto": 10,
+  "planoMinimo": "gratis",
   "questoes": [
     {
       "pergunta": "Qual fracao representa metade?",
@@ -366,6 +370,7 @@ Resposta de exemplo:
     }
   ],
   "xpPorAcerto": 10,
+  "planoMinimo": "gratis",
   "ativo": true
 }
 ```
@@ -400,6 +405,7 @@ Resposta de exemplo:
       }
     ],
     "xpPorAcerto": 10,
+    "planoMinimo": "gratis",
     "ativo": true
   }
 ]
@@ -426,11 +432,13 @@ Resposta de exemplo para aluno:
     }
   ],
   "xpPorAcerto": 10,
+  "planoMinimo": "gratis",
   "ativo": true
 }
 ```
 
 Observacao: professor e admin podem ver `respostaCorreta`.
+`planoMinimo` pode ser `"gratis"` ou `"premium"`. Quizzes premium so podem ser acessados por usuarios premium, professores e admins.
 
 ### Responder quiz
 
@@ -655,4 +663,71 @@ Resposta de exemplo:
     "totalAulasConcluidas": 22
   }
 ]
+```
+
+## Planos
+
+### Meu plano
+
+- Metodo: `GET`
+- URL: `/api/planos/me`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+{
+  "plano": "gratis",
+  "aiPerguntasUsadas": 0,
+  "aiLimitePerguntas": 5
+}
+```
+
+### Upgrade para premium
+
+- Metodo: `PATCH`
+- URL: `/api/planos/upgrade`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+{
+  "message": "Plano atualizado para premium.",
+  "user": {
+    "id": "ID_DO_USUARIO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "tipo": "aluno",
+    "plano": "premium",
+    "aiPerguntasUsadas": 0,
+    "aiLimitePerguntas": 100
+  }
+}
+```
+
+### Voltar para gratis
+
+- Metodo: `PATCH`
+- URL: `/api/planos/downgrade`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+{
+  "message": "Plano atualizado para gratis.",
+  "user": {
+    "id": "ID_DO_USUARIO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "tipo": "aluno",
+    "plano": "gratis",
+    "aiPerguntasUsadas": 0,
+    "aiLimitePerguntas": 5
+  }
+}
 ```

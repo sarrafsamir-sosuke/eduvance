@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import { isValidObjectId } from 'mongoose';
+import { FilterQuery, isValidObjectId } from 'mongoose';
 
 import Aula from '../models/Aula';
 import Disciplina from '../models/Disciplina';
-import Quiz, { IQuestaoQuiz } from '../models/Quiz';
+import Quiz, { IQuestaoQuiz, IQuiz } from '../models/Quiz';
 import ResultadoQuiz from '../models/ResultadoQuiz';
 import User from '../models/User';
 import { calculateLevel } from '../utils/gamification';
+import { canAccessPlan, validPlans } from '../utils/plan';
 
 const quizPopulate = [
   { path: 'disciplina', select: 'nome categoria emoji' },
@@ -73,8 +74,15 @@ const validateQuestoes = (questoes: IQuestaoQuiz[]) => {
 
 export const createQuiz = async (request: Request, response: Response) => {
   try {
-    const { titulo, descricao, disciplina, aula, questoes, xpPorAcerto } =
-      request.body;
+    const {
+      titulo,
+      descricao,
+      disciplina,
+      aula,
+      questoes,
+      xpPorAcerto,
+      planoMinimo = 'gratis',
+    } = request.body;
 
     if (!request.user) {
       return response.status(401).json({ message: 'Usuario nao autenticado.' });
@@ -88,6 +96,12 @@ export const createQuiz = async (request: Request, response: Response) => {
 
     if (!isValidObjectId(disciplina)) {
       return response.status(400).json({ message: 'Id da disciplina invalido.' });
+    }
+
+    if (!validPlans.includes(planoMinimo)) {
+      return response.status(400).json({
+        message: 'planoMinimo deve ser gratis ou premium.',
+      });
     }
 
     const questoesError = validateQuestoes(questoes);
@@ -122,6 +136,7 @@ export const createQuiz = async (request: Request, response: Response) => {
       professor: request.user._id,
       questoes,
       xpPorAcerto,
+      planoMinimo,
     });
 
     const quizCompleto = await Quiz.findById(quiz._id).populate(quizPopulate);
@@ -135,9 +150,19 @@ export const createQuiz = async (request: Request, response: Response) => {
   }
 };
 
-export const listQuizzes = async (_request: Request, response: Response) => {
+export const listQuizzes = async (request: Request, response: Response) => {
   try {
-    const quizzes = await Quiz.find({ ativo: true })
+    const filter: FilterQuery<IQuiz> = { ativo: true };
+
+    // Aluno gratis ve apenas quizzes gratis. Premium, professor e admin veem tudo.
+    if (
+      request.user?.tipo === 'aluno' &&
+      !canAccessPlan(request.user.plano, 'premium')
+    ) {
+      filter.$or = [{ planoMinimo: 'gratis' }, { planoMinimo: { $exists: false } }];
+    }
+
+    const quizzes = await Quiz.find(filter)
       .select('-questoes.respostaCorreta')
       .populate(quizPopulate)
       .sort({ createdAt: -1 });
@@ -172,6 +197,15 @@ export const getQuizById = async (request: Request, response: Response) => {
       return response.status(404).json({ message: 'Quiz nao encontrado.' });
     }
 
+    if (
+      request.user?.tipo === 'aluno' &&
+      !canAccessPlan(request.user.plano, quiz.planoMinimo)
+    ) {
+      return response.status(403).json({
+        message: 'Este quiz é exclusivo para usuários premium.',
+      });
+    }
+
     return response.json(quiz);
   } catch (error) {
     return response.status(500).json({
@@ -202,6 +236,15 @@ export const responderQuiz = async (request: Request, response: Response) => {
 
     if (!quiz) {
       return response.status(404).json({ message: 'Quiz nao encontrado.' });
+    }
+
+    if (
+      request.user.tipo === 'aluno' &&
+      !canAccessPlan(request.user.plano, quiz.planoMinimo)
+    ) {
+      return response.status(403).json({
+        message: 'Este quiz é exclusivo para usuários premium.',
+      });
     }
 
     const resultadoExistente = await ResultadoQuiz.findOne({

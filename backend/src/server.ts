@@ -7,6 +7,7 @@ import adminRoutes from './routes/admin.routes';
 import authRoutes from './routes/auth.routes';
 import aulaRoutes from './routes/aula.routes';
 import disciplinaRoutes from './routes/disciplina.routes';
+import planoRoutes from './routes/plano.routes';
 import progressoRoutes from './routes/progresso.routes';
 import quizRoutes from './routes/quiz.routes';
 
@@ -29,6 +30,7 @@ app.use('/api/aulas', aulaRoutes);
 app.use('/api/progresso', progressoRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/planos', planoRoutes);
 
 // Rota inicial para testar rapidamente se a API esta online.
 app.get('/', (_request, response) => {

@@ -1,5 +1,7 @@
 import { Document, Schema, Types, model } from 'mongoose';
 
+import { PlanType } from '../utils/plan';
+
 export interface IAula extends Document {
   titulo: string;
   descricao?: string;
@@ -10,6 +12,7 @@ export interface IAula extends Document {
   ordem: number;
   duracao?: number;
   xpReward: number;
+  planoMinimo: PlanType;
 }
 
 const aulaSchema = new Schema<IAula>(
@@ -51,6 +54,11 @@ const aulaSchema = new Schema<IAula>(
     xpReward: {
       type: Number,
       default: 50,
+    },
+    planoMinimo: {
+      type: String,
+      enum: ['gratis', 'premium'],
+      default: 'gratis',
     },
   },
   {
