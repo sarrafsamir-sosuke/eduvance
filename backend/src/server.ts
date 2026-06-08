@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import aulaRoutes from './routes/aula.routes';
 import disciplinaRoutes from './routes/disciplina.routes';
 import progressoRoutes from './routes/progresso.routes';
+import quizRoutes from './routes/quiz.routes';
 
 // Carrega as variaveis do arquivo .env, quando ele existir.
 dotenv.config();
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/disciplinas', disciplinaRoutes);
 app.use('/api/aulas', aulaRoutes);
 app.use('/api/progresso', progressoRoutes);
+app.use('/api/quizzes', quizRoutes);
 
 // Rota inicial para testar rapidamente se a API esta online.
 app.get('/', (_request, response) => {

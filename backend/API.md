@@ -309,3 +309,217 @@ Resposta de exemplo quando a aula ainda nao foi concluida:
   "concluidaEm": null
 }
 ```
+
+## Quizzes
+
+### Criar quiz
+
+- Metodo: `POST`
+- URL: `/api/quizzes`
+- Precisa de token: sim
+- Quem pode acessar: professor e admin
+
+Body:
+
+```json
+{
+  "titulo": "Quiz de fracoes",
+  "descricao": "Verifica os conceitos iniciais de fracoes.",
+  "disciplina": "ID_DA_DISCIPLINA",
+  "aula": "ID_DA_AULA",
+  "xpPorAcerto": 10,
+  "questoes": [
+    {
+      "pergunta": "Qual fracao representa metade?",
+      "alternativas": ["1/3", "1/2", "2/3", "3/4"],
+      "respostaCorreta": 1,
+      "explicacao": "Metade significa uma parte de duas."
+    }
+  ]
+}
+```
+
+Resposta de exemplo:
+
+```json
+{
+  "_id": "ID_DO_QUIZ",
+  "titulo": "Quiz de fracoes",
+  "disciplina": {
+    "_id": "ID_DA_DISCIPLINA",
+    "nome": "Matematica"
+  },
+  "aula": {
+    "_id": "ID_DA_AULA",
+    "titulo": "Introducao a fracoes"
+  },
+  "professor": {
+    "_id": "ID_DO_PROFESSOR",
+    "nome": "Professor"
+  },
+  "questoes": [
+    {
+      "pergunta": "Qual fracao representa metade?",
+      "alternativas": ["1/3", "1/2", "2/3", "3/4"],
+      "respostaCorreta": 1,
+      "explicacao": "Metade significa uma parte de duas."
+    }
+  ],
+  "xpPorAcerto": 10,
+  "ativo": true
+}
+```
+
+### Listar quizzes
+
+- Metodo: `GET`
+- URL: `/api/quizzes`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DO_QUIZ",
+    "titulo": "Quiz de fracoes",
+    "disciplina": {
+      "_id": "ID_DA_DISCIPLINA",
+      "nome": "Matematica"
+    },
+    "aula": {
+      "_id": "ID_DA_AULA",
+      "titulo": "Introducao a fracoes"
+    },
+    "questoes": [
+      {
+        "pergunta": "Qual fracao representa metade?",
+        "alternativas": ["1/3", "1/2", "2/3", "3/4"],
+        "explicacao": "Metade significa uma parte de duas."
+      }
+    ],
+    "xpPorAcerto": 10,
+    "ativo": true
+  }
+]
+```
+
+### Buscar quiz por id
+
+- Metodo: `GET`
+- URL: `/api/quizzes/:id`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo para aluno:
+
+```json
+{
+  "_id": "ID_DO_QUIZ",
+  "titulo": "Quiz de fracoes",
+  "questoes": [
+    {
+      "pergunta": "Qual fracao representa metade?",
+      "alternativas": ["1/3", "1/2", "2/3", "3/4"],
+      "explicacao": "Metade significa uma parte de duas."
+    }
+  ],
+  "xpPorAcerto": 10,
+  "ativo": true
+}
+```
+
+Observacao: professor e admin podem ver `respostaCorreta`.
+
+### Responder quiz
+
+- Metodo: `POST`
+- URL: `/api/quizzes/:id/responder`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Body:
+
+```json
+{
+  "respostas": [1]
+}
+```
+
+Resposta de exemplo:
+
+```json
+{
+  "message": "Quiz respondido com sucesso.",
+  "resultado": {
+    "_id": "ID_DO_RESULTADO",
+    "usuario": "ID_DO_USUARIO",
+    "quiz": {
+      "_id": "ID_DO_QUIZ",
+      "titulo": "Quiz de fracoes"
+    },
+    "respostas": [1],
+    "acertos": 1,
+    "totalQuestoes": 1,
+    "nota": 10,
+    "xpGanho": 10
+  },
+  "correcoes": [
+    {
+      "pergunta": "Qual fracao representa metade?",
+      "respostaAluno": 1,
+      "respostaCorreta": 1,
+      "correta": true,
+      "explicacao": "Metade significa uma parte de duas."
+    }
+  ],
+  "user": {
+    "id": "ID_DO_USUARIO",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "xp": 560,
+    "nivel": 2,
+    "streak": 3,
+    "lastStudyDate": "2026-06-08",
+    "totalAulasConcluidas": 11
+  }
+}
+```
+
+Observacao: se o usuario responder o mesmo quiz novamente, o XP nao sera somado outra vez.
+
+### Listar meus resultados de quiz
+
+- Metodo: `GET`
+- URL: `/api/quizzes/me/resultados`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Resposta de exemplo:
+
+```json
+[
+  {
+    "_id": "ID_DO_RESULTADO",
+    "quiz": {
+      "_id": "ID_DO_QUIZ",
+      "titulo": "Quiz de fracoes",
+      "disciplina": {
+        "_id": "ID_DA_DISCIPLINA",
+        "nome": "Matematica"
+      },
+      "aula": {
+        "_id": "ID_DA_AULA",
+        "titulo": "Introducao a fracoes"
+      }
+    },
+    "respostas": [1],
+    "acertos": 1,
+    "totalQuestoes": 1,
+    "nota": 10,
+    "xpGanho": 10,
+    "finalizadoEm": "2026-06-08T03:00:00.000Z"
+  }
+]
+```
