@@ -159,3 +159,44 @@ Body:
 - URL: `/api/aulas/:id`
 - Precisa de token: sim
 - Quem pode acessar: professor e admin
+
+## Progresso
+
+### Concluir aula
+
+- Metodo: `POST`
+- URL: `/api/progresso/concluir-aula`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+Body:
+
+```json
+{
+  "aulaId": "ID_DA_AULA"
+}
+```
+
+Observacao: se a aula ja estiver concluida pelo usuario, o XP nao sera somado novamente.
+
+Regras de nivel:
+
+- Nivel 1: 0 XP
+- Nivel 2: 500 XP
+- Nivel 3: 1000 XP
+- Nivel 4: 2000 XP
+- Nivel 5: 4000 XP
+
+### Listar meu progresso
+
+- Metodo: `GET`
+- URL: `/api/progresso/me`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin
+
+### Buscar meu progresso em uma aula
+
+- Metodo: `GET`
+- URL: `/api/progresso/aulas/:aulaId`
+- Precisa de token: sim
+- Quem pode acessar: aluno, professor e admin

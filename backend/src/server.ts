@@ -6,6 +6,7 @@ import { connectDatabase } from './config/database';
 import authRoutes from './routes/auth.routes';
 import aulaRoutes from './routes/aula.routes';
 import disciplinaRoutes from './routes/disciplina.routes';
+import progressoRoutes from './routes/progresso.routes';
 
 // Carrega as variaveis do arquivo .env, quando ele existir.
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/disciplinas', disciplinaRoutes);
 app.use('/api/aulas', aulaRoutes);
+app.use('/api/progresso', progressoRoutes);
 
 // Rota inicial para testar rapidamente se a API esta online.
 app.get('/', (_request, response) => {
