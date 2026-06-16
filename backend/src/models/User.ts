@@ -19,6 +19,8 @@ export interface IUser extends Document {
   plano: PlanType;
   aiPerguntasUsadas: number;
   aiLimitePerguntas: number;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -86,6 +88,15 @@ const userSchema = new Schema<IUser>(
     aiLimitePerguntas: {
       type: Number,
       default: 5,
+    },
+    // Usados na recuperacao de senha simples (token temporario).
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      select: false,
     },
   },
   {

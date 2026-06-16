@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
@@ -99,4 +101,74 @@ export const login = async (request: Request, response: Response) => {
 
 export const me = async (request: Request, response: Response) => {
   return response.json(request.user);
+};
+
+// Recuperacao de senha simples para o TCC: gera um token temporario.
+// Nao envia email real; em desenvolvimento devolve o token no JSON para teste.
+export const forgotPassword = async (request: Request, response: Response) => {
+  try {
+    const { email } = request.body;
+
+    if (!email) {
+      return response.status(400).json({ message: 'Email e obrigatorio.' });
+    }
+
+    const normalizedEmail = String(email).toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    // Resposta neutra: nao revela se o email existe.
+    const genericMessage =
+      'Se este email existir no EduVance, enviaremos um link de recuperacao.';
+
+    if (!user) {
+      return response.json({ message: genericMessage });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 1000 * 60 * 30); // 30 minutos
+    await user.save();
+
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    return response.json({
+      message: genericMessage,
+      // Apenas fora de producao expomos o token para facilitar o teste.
+      ...(isProduction ? {} : { token, resetUrl: `/redefinir-senha/${token}` }),
+    });
+  } catch (error) {
+    return response.status(500).json({ message: 'Erro ao solicitar recuperacao de senha.', error });
+  }
+};
+
+export const resetPassword = async (request: Request, response: Response) => {
+  try {
+    const { token, senha } = request.body;
+
+    if (!token || !senha) {
+      return response.status(400).json({ message: 'Token e nova senha sao obrigatorios.' });
+    }
+
+    if (String(senha).length < 6) {
+      return response.status(400).json({ message: 'A nova senha precisa ter pelo menos 6 caracteres.' });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    }).select('+resetPasswordToken +resetPasswordExpires');
+
+    if (!user) {
+      return response.status(400).json({ message: 'Token invalido ou expirado.' });
+    }
+
+    user.senha = await bcrypt.hash(senha, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    return response.json({ message: 'Senha redefinida com sucesso.' });
+  } catch (error) {
+    return response.status(500).json({ message: 'Erro ao redefinir senha.', error });
+  }
 };
