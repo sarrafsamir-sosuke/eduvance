@@ -143,8 +143,7 @@ export function AlunoInicioPage() {
             </Button>
           </section>
 
-          <aside className="dashboard-side">
-            <section className="panel">
+          <section className="panel upcoming-panel">
               <h2 className="panel-title-sm">Próximas aulas</h2>
               {[
                 ['14', 'JUN', 'Física: Leis de Newton', '14:00 · Prof. Lúcia'],
@@ -161,9 +160,11 @@ export function AlunoInicioPage() {
                   </div>
                 </article>
               ))}
-            </section>
+          </section>
+        </div>
 
-            <section className="streak-panel">
+        <div className="dashboard-focus-grid">
+          <section className="streak-panel dashboard-streak">
               <span className="streak-flame" aria-hidden="true">
                 <Icon name="flame" size={26} />
               </span>
@@ -176,8 +177,7 @@ export function AlunoInicioPage() {
                   </span>
                 ))}
               </div>
-            </section>
-          </aside>
+          </section>
 
           <section className="panel achievements-panel">
             <div className="panel-head">
