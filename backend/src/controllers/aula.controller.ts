@@ -25,6 +25,12 @@ export const createAula = async (request: Request, response: Response) => {
       planoMinimo = 'gratis',
     } = request.body;
 
+    // Quando um arquivo de video e enviado via multipart, o multer popula request.file.
+    const videoFile = request.file as Express.Multer.File | undefined;
+    const resolvedUrlVideo = videoFile
+      ? `/uploads/videos/${videoFile.filename}`
+      : urlVideo;
+
     if (!titulo || !disciplina) {
       return response.status(400).json({
         message: 'Titulo e disciplina sao obrigatorios.',
@@ -35,7 +41,9 @@ export const createAula = async (request: Request, response: Response) => {
       return response.status(400).json({ message: 'Id da disciplina invalido.' });
     }
 
-    if (!validPlans.includes(planoMinimo)) {
+    const plan = planoMinimo || 'gratis';
+
+    if (!validPlans.includes(plan)) {
       return response.status(400).json({
         message: 'planoMinimo deve ser gratis ou premium.',
       });
@@ -47,20 +55,19 @@ export const createAula = async (request: Request, response: Response) => {
       return response.status(404).json({ message: 'Disciplina nao encontrada.' });
     }
 
-    // Se o professor nao vier no body, usa o usuario logado como responsavel.
     const professorResponsavel = professor || request.user?._id;
 
     const aula = await Aula.create({
       titulo,
       descricao,
-      urlVideo,
+      urlVideo: resolvedUrlVideo,
       disciplina,
       professor: professorResponsavel,
       modulo,
-      ordem,
-      duracao,
-      xpReward,
-      planoMinimo,
+      ordem: Number(ordem) || 1,
+      duracao: Number(duracao) || undefined,
+      xpReward: Number(xpReward) || 50,
+      planoMinimo: plan,
     });
 
     const aulaCompleta = await Aula.findById(aula._id).populate(aulaPopulate);

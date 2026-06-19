@@ -1,3 +1,5 @@
+import path from 'path';
+
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -12,18 +14,17 @@ import planoRoutes from './routes/plano.routes';
 import progressoRoutes from './routes/progresso.routes';
 import quizRoutes from './routes/quiz.routes';
 
-// Carrega as variaveis do arquivo .env, quando ele existir.
 dotenv.config();
 
 const app = express();
 
 connectDatabase();
 
-// Permite que o frontend acesse a API durante o desenvolvimento.
 app.use(cors());
-
-// Faz o Express entender JSON enviado no corpo das requisicoes.
 app.use(express.json());
+
+// Serve arquivos de upload (videos, imagens) como estaticos.
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/disciplinas', disciplinaRoutes);

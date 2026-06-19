@@ -5,7 +5,7 @@ import { Icon } from '../../components/Icon';
 import { AppLayout } from '../../components/layouts/AppLayout';
 import { Badge, Button, EmptyState, Spinner } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
-import { api, getApiErrorMessage } from '../../lib/api';
+import { api, API_BASE_URL, getApiErrorMessage } from '../../lib/api';
 import { disciplinaIdOfAula, formatDuration, professorName, refName } from '../../lib/helpers';
 import { useApi } from '../../lib/hooks';
 import type { Aula, ProgressoItem } from '../../lib/types';
@@ -100,15 +100,37 @@ export function AulaPage() {
         <div className="aula-grid">
           <div className="aula-main">
             <div className="video-frame">
-              {aula.urlVideo ? (
-                <div className="video-placeholder">
-                  <span className="video-play" aria-hidden="true">
-                    <Icon name="play" size={28} />
-                  </span>
-                  <p>Player de vídeo</p>
-                  <small>{aula.urlVideo}</small>
-                </div>
-              ) : (
+              {aula.urlVideo ? (() => {
+                const isLocal = aula.urlVideo.startsWith('/uploads');
+                const isDirectVideo = /\.(mp4|mov|avi|mkv|webm)(\?|$)/i.test(aula.urlVideo);
+                const videoSrc = isLocal ? `${API_BASE_URL}${aula.urlVideo}` : aula.urlVideo;
+
+                if (isLocal || isDirectVideo) {
+                  return (
+                    <video
+                      controls
+                      controlsList="nodownload"
+                      preload="metadata"
+                      src={videoSrc}
+                      style={{ width: '100%', borderRadius: 'var(--radius-lg, 12px)', background: '#000' }}
+                    >
+                      Seu navegador não suporta o player de vídeo.
+                    </video>
+                  );
+                }
+
+                return (
+                  <div className="video-placeholder">
+                    <span className="video-play" aria-hidden="true">
+                      <Icon name="play" size={28} />
+                    </span>
+                    <p>Vídeo externo</p>
+                    <a href={aula.urlVideo} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                      Abrir vídeo em nova aba
+                    </a>
+                  </div>
+                );
+              })() : (
                 <div className="video-placeholder">
                   <span className="video-play" aria-hidden="true">
                     <Icon name="play" size={28} />
