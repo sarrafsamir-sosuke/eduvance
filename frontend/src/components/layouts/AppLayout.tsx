@@ -136,7 +136,7 @@ export function AppLayout({ children, title }: { children: ReactNode; title?: st
               aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
               onClick={toggle}
             >
-              <Icon name={isDark ? 'sparkles' : 'star'} size={18} />
+              <Icon name={isDark ? 'sun' : 'moon'} size={18} />
             </button>
             <button className="icon-button" type="button" aria-label="Notificações">
               <Icon name="bell" size={18} />
