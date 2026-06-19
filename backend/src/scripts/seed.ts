@@ -1,6 +1,10 @@
+import dns from 'dns';
+
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import mongoose, { Types } from 'mongoose';
+
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 import Aula from '../models/Aula';
 import Disciplina from '../models/Disciplina';
