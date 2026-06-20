@@ -1,43 +1,60 @@
-import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 import { BrandLogo } from '../../components/brand/BrandLogo';
 import { Icon } from '../../components/Icon';
-import { Button, Input } from '../../components/ui';
+import { Button } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
-import { api, getApiErrorMessage } from '../../lib/api';
-
-type Metodo = 'cartao' | 'pix' | 'boleto';
+import { getApiErrorMessage } from '../../lib/api';
+import { createPremiumCheckout, simulatePaymentApproved } from '../../services/paymentService';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, refreshUser, setPlano } = useAuth();
-  const [metodo, setMetodo] = useState<Metodo>('cartao');
-  const [form, setForm] = useState({ nome: '', email: '', cpf: '', cartao: '', titular: '', validade: '', cvv: '' });
-  const [loading, setLoading] = useState(false);
+  const { isAuthenticated, refreshUser, setPlano, user } = useAuth();
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
+  const [loadingSimulation, setLoadingSimulation] = useState(false);
   const [error, setError] = useState('');
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError('');
+  const isPremium = user?.plano === 'premium';
 
-    // Sem login não dá para aplicar o upgrade: leva ao login e volta ao checkout.
+  function requireLogin() {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/checkout', message: 'Entre para concluir a assinatura Premium.' } });
-      return;
+      return false;
     }
 
-    setLoading(true);
+    return true;
+  }
+
+  async function handleMercadoPagoCheckout() {
+    setError('');
+    if (!requireLogin() || isPremium) return;
+
+    setLoadingCheckout(true);
     try {
-      // Pagamento simulado (TCC): aplica o upgrade real no backend.
-      await api.patch('/planos/upgrade');
+      const data = await createPremiumCheckout();
+      window.location.href = data.checkoutUrl;
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Nao foi possivel iniciar o pagamento pelo Mercado Pago.'));
+    } finally {
+      setLoadingCheckout(false);
+    }
+  }
+
+  async function handleSimulation() {
+    setError('');
+    if (!requireLogin() || isPremium) return;
+
+    setLoadingSimulation(true);
+    try {
+      const data = await simulatePaymentApproved();
       setPlano('premium');
       await refreshUser().catch(() => undefined);
       navigate('/pagamento-efetuado', { replace: true });
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Não foi possível concluir a assinatura.'));
+      setError(getApiErrorMessage(err, 'Nao foi possivel ativar o Premium simulado.'));
     } finally {
-      setLoading(false);
+      setLoadingSimulation(false);
     }
   }
 
@@ -48,50 +65,28 @@ export function CheckoutPage() {
           <BrandLogo size="md" />
         </Link>
         <span className="checkout-secure">
-          <Icon name="lock" size={15} /> Ambiente seguro
+          <Icon name="lock" size={15} /> Pagamento Mercado Pago
         </span>
       </header>
 
-      <form className="checkout-body" onSubmit={handleSubmit}>
+      <div className="checkout-body">
         <div className="checkout-main">
           <h1 className="display">Finalizar assinatura</h1>
 
           <section className="checkout-block">
-            <h2>Dados pessoais</h2>
-            <Input label="Nome completo" placeholder="João da Silva" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-            <div className="checkout-row">
-              <Input label="E-mail" type="email" placeholder="joao@exemplo.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <Input label="CPF" placeholder="000.000.000-00" value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} />
-            </div>
+            <h2>EduVance Premium</h2>
+            <p className="checkout-alt">
+              O pagamento sera processado pelo Mercado Pago Checkout Pro. O EduVance nao coleta nem armazena dados de cartao.
+            </p>
           </section>
 
           <section className="checkout-block">
-            <h2>Forma de pagamento</h2>
-            <div className="pay-methods" role="group" aria-label="Forma de pagamento">
-              {(['cartao', 'pix', 'boleto'] as Metodo[]).map((m) => (
-                <button key={m} type="button" className={metodo === m ? 'active' : ''} onClick={() => setMetodo(m)}>
-                  <Icon name={m === 'cartao' ? 'card' : m === 'pix' ? 'grid' : 'doc'} size={16} />
-                  {m === 'cartao' ? 'Cartão de Crédito' : m === 'pix' ? 'PIX' : 'Boleto'}
-                </button>
-              ))}
+            <h2>Beneficios incluidos</h2>
+            <div className="success-perks">
+              <span><Icon name="checkCircle" size={16} /> Todas as disciplinas e aulas premium</span>
+              <span><Icon name="checkCircle" size={16} /> EduAI ampliada com 100 perguntas por dia</span>
+              <span><Icon name="checkCircle" size={16} /> Quizzes premium, progresso e conquistas</span>
             </div>
-
-            {metodo === 'cartao' ? (
-              <div className="checkout-card-form">
-                <Input label="Número do cartão" placeholder="0000 0000 0000 0000" value={form.cartao} onChange={(e) => setForm({ ...form, cartao: e.target.value })} />
-                <Input label="Nome no cartão" placeholder="JOÃO M SILVA" value={form.titular} onChange={(e) => setForm({ ...form, titular: e.target.value })} />
-                <div className="checkout-row">
-                  <Input label="Validade (MM/AA)" placeholder="12/28" value={form.validade} onChange={(e) => setForm({ ...form, validade: e.target.value })} />
-                  <Input label="CVV" placeholder="123" value={form.cvv} onChange={(e) => setForm({ ...form, cvv: e.target.value })} />
-                </div>
-              </div>
-            ) : (
-              <p className="checkout-alt">
-                {metodo === 'pix'
-                  ? 'Um código PIX seria gerado aqui. Neste TCC o pagamento é simulado: clique em Assinar Agora para concluir.'
-                  : 'Um boleto seria gerado aqui. Neste TCC o pagamento é simulado: clique em Assinar Agora para concluir.'}
-              </p>
-            )}
           </section>
 
           {error ? <p className="form-feedback error">{error}</p> : null}
@@ -102,35 +97,34 @@ export function CheckoutPage() {
           <div className="checkout-plan-card">
             <span className="checkout-plan-label">Plano</span>
             <strong>EduVance Premium</strong>
-            <span className="checkout-plan-price">R$ 19/mês</span>
+            <span className="checkout-plan-price">R$ 49/mes</span>
             <ul>
-              <li><Icon name="check" size={15} /> Acesso a todas as disciplinas</li>
-              <li><Icon name="check" size={15} /> EduAI ampliada (100/dia)</li>
-              <li><Icon name="check" size={15} /> Quizzes e conquistas premium</li>
+              <li><Icon name="check" size={15} /> Acesso completo</li>
+              <li><Icon name="check" size={15} /> Pagamento seguro fora da plataforma</li>
+              <li><Icon name="check" size={15} /> Ativacao apos confirmacao do webhook</li>
             </ul>
           </div>
 
           <div className="checkout-line">
             <span>Subtotal</span>
-            <span>R$ 29,00</span>
-          </div>
-          <div className="checkout-line">
-            <span>Desconto promocional</span>
-            <span className="text-green">- R$ 10,00</span>
+            <span>R$ 49,00</span>
           </div>
           <div className="checkout-total">
             <span>Total</span>
-            <strong>R$ 19,00</strong>
+            <strong>R$ 49,00</strong>
           </div>
 
-          <Button full type="submit" loading={loading}>
-            {loading ? 'Processando...' : 'Assinar agora'} <Icon name="arrowRight" size={18} />
+          <Button full loading={loadingCheckout} disabled={isPremium || loadingSimulation} onClick={handleMercadoPagoCheckout}>
+            {isPremium ? 'Premium ativo' : 'Ir para pagamento'} <Icon name="arrowRight" size={18} />
+          </Button>
+          <Button full variant="outline" loading={loadingSimulation} disabled={isPremium || loadingCheckout} onClick={handleSimulation}>
+            Ativar Premium simulado
           </Button>
           <p className="checkout-guarantee">
-            <Icon name="shield" size={14} /> Garantia de 7 dias ou seu dinheiro de volta
+            <Icon name="shield" size={14} /> Processado pelo Mercado Pago Checkout Pro
           </p>
         </aside>
-      </form>
+      </div>
     </main>
   );
 }

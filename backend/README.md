@@ -18,6 +18,9 @@ PORT=3333
 MONGO_URI=sua_string_do_mongodb
 JWT_SECRET=eduvance_secret
 EDUAI_MODE=mock
+FRONTEND_URL=http://localhost:5180
+BACKEND_URL=http://localhost:3333
+MERCADO_PAGO_ACCESS_TOKEN=
 ```
 
 Campos:
@@ -26,6 +29,16 @@ Campos:
 - `MONGO_URI`: conexão do MongoDB.
 - `JWT_SECRET`: segredo usado para assinar o JWT.
 - `EDUAI_MODE`: use `mock` para resposta simulada da EduAI.
+- `FRONTEND_URL`: URL do frontend liberada para acessar a API. Em producao, use a URL da Vercel, por exemplo `https://seu-projeto.vercel.app`.
+- `BACKEND_URL`: URL publica da API. Em producao, use a URL do Railway, por exemplo `https://sua-api.up.railway.app`.
+- `MERCADO_PAGO_ACCESS_TOKEN`: token privado do Mercado Pago usado somente no backend.
+
+No deploy:
+
+- Railway/backend: configure `FRONTEND_URL=https://seu-projeto.vercel.app`.
+- Railway/backend: configure `BACKEND_URL=https://sua-api.up.railway.app`.
+- Railway/backend: configure `MERCADO_PAGO_ACCESS_TOKEN` com a credencial privada do Mercado Pago.
+- Vercel/frontend: configure `VITE_API_URL=https://sua-api.up.railway.app/api`.
 
 ## Como rodar o backend
 

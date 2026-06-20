@@ -15,6 +15,8 @@ import { ComoFuncionaPage } from './pages/public/ComoFunciona';
 import { DisciplinasPublicPage } from './pages/public/DisciplinasPublic';
 import { LandingPage } from './pages/public/Landing';
 import { PagamentoEfetuadoPage } from './pages/public/PagamentoEfetuado';
+import { PagamentoFalhouPage } from './pages/public/PagamentoFalhou';
+import { PagamentoPendentePage } from './pages/public/PagamentoPendente';
 import { PlanosPage } from './pages/public/Planos';
 import { ProfessoresPage } from './pages/public/Professores';
 import { SobrePage } from './pages/public/Sobre';
@@ -64,6 +66,8 @@ export default function App() {
       <Route path="/planos" element={<PlanosPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/pagamento-efetuado" element={<PagamentoEfetuadoPage />} />
+      <Route path="/pagamento-pendente" element={<PagamentoPendentePage />} />
+      <Route path="/pagamento-falhou" element={<PagamentoFalhouPage />} />
       <Route path="/como-funciona" element={<ComoFuncionaPage />} />
       <Route path="/sobre" element={<SobrePage />} />
 

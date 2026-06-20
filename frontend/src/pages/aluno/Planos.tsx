@@ -7,6 +7,7 @@ import { Badge, Button, Spinner } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { api, getApiErrorMessage } from '../../lib/api';
 import type { PlanoInfo } from '../../lib/types';
+import { createPremiumCheckout, simulatePaymentApproved } from '../../services/paymentService';
 
 export function AlunoPlanosPage() {
   const navigate = useNavigate();
@@ -30,18 +31,49 @@ export function AlunoPlanosPage() {
 
   const isPremium = plano?.plano === 'premium';
 
-  async function changePlan(action: 'upgrade' | 'downgrade') {
+  async function downgradePlan() {
     setWorking(true);
     setError('');
     setMessage('');
     try {
-      const { data } = await api.patch<{ message: string; user: { plano: 'gratis' | 'premium' } }>(`/planos/${action}`);
-      setPlano(data.user.plano);
+      const { data } = await api.patch<{ message: string; user: { plano: 'gratis' | 'premium' } }>('/planos/downgrade');
+      setPlano('premium');
       setMessage(data.message);
       await refreshUser().catch(() => undefined);
       load();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Não foi possível atualizar o plano.'));
+      setError(getApiErrorMessage(err, 'Nao foi possivel atualizar o plano.'));
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function startPremiumCheckout() {
+    setWorking(true);
+    setError('');
+    setMessage('');
+    try {
+      const data = await createPremiumCheckout();
+      window.location.href = data.checkoutUrl;
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Nao foi possivel iniciar o pagamento. Use a simulacao para apresentacao do TCC.'));
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function simulatePremium() {
+    setWorking(true);
+    setError('');
+    setMessage('');
+    try {
+      const data = await simulatePaymentApproved();
+      setPlano('premium');
+      setMessage(data.message);
+      await refreshUser().catch(() => undefined);
+      load();
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Nao foi possivel ativar o Premium simulado.'));
     } finally {
       setWorking(false);
     }
@@ -65,7 +97,7 @@ export function AlunoPlanosPage() {
               <div>
                 <span className="plan-current-label">Plano atual</span>
                 <h2>
-                  EduVance {isPremium ? 'Premium' : 'Grátis'} {isPremium ? <Badge tone="yellow">Premium</Badge> : <Badge tone="slate">Grátis</Badge>}
+                  EduVance {isPremium ? 'Premium' : 'Gratis'} {isPremium ? <Badge tone="yellow">Premium</Badge> : <Badge tone="slate">Gratis</Badge>}
                 </h2>
                 <p>
                   EduAI: {plano?.aiPerguntasUsadas ?? 0}/{plano?.aiLimitePerguntas ?? 5} perguntas usadas hoje.
@@ -82,11 +114,11 @@ export function AlunoPlanosPage() {
             <div className="planos-grid two">
               <article className={`plano-card${!isPremium ? ' is-current' : ''}`}>
                 {!isPremium ? <span className="plano-badge slate">Seu plano</span> : null}
-                <h2>Grátis</h2>
-                <p className="plano-tagline">Para começar a estudar.</p>
+                <h2>Gratis</h2>
+                <p className="plano-tagline">Para comecar a estudar.</p>
                 <div className="plano-price">
                   <strong>R$ 0</strong>
-                  <span>/mês</span>
+                  <span>/mes</span>
                 </div>
                 <ul className="plano-features">
                   <li><Icon name="checkCircle" size={17} /> Disciplinas e aulas gratuitas</li>
@@ -94,8 +126,8 @@ export function AlunoPlanosPage() {
                   <li><Icon name="checkCircle" size={17} /> Progresso e conquistas</li>
                 </ul>
                 {isPremium ? (
-                  <Button variant="outline" full loading={working} onClick={() => changePlan('downgrade')}>
-                    Voltar para o grátis
+                  <Button variant="outline" full loading={working} onClick={downgradePlan}>
+                    Voltar para o gratis
                   </Button>
                 ) : (
                   <Button variant="outline" full disabled>
@@ -107,10 +139,10 @@ export function AlunoPlanosPage() {
               <article className={`plano-card is-featured${isPremium ? ' is-current' : ''}`}>
                 <span className="plano-badge">{isPremium ? 'Seu plano' : 'Mais popular'}</span>
                 <h2>Premium</h2>
-                <p className="plano-tagline">A experiência completa.</p>
+                <p className="plano-tagline">A experiencia completa.</p>
                 <div className="plano-price">
                   <strong>R$ 49</strong>
-                  <span>/mês</span>
+                  <span>/mes</span>
                 </div>
                 <ul className="plano-features">
                   <li><Icon name="checkCircle" size={17} /> Todas as disciplinas e aulas premium</li>
@@ -122,7 +154,7 @@ export function AlunoPlanosPage() {
                     Plano atual
                   </Button>
                 ) : (
-                  <Button full loading={working} onClick={() => navigate('/checkout')}>
+                  <Button full loading={working} onClick={startPremiumCheckout}>
                     Assinar Premium
                   </Button>
                 )}
@@ -131,8 +163,12 @@ export function AlunoPlanosPage() {
 
             {!isPremium ? (
               <p className="plan-quick">
-                Quer testar agora?{' '}
-                <button type="button" className="text-link inline" onClick={() => changePlan('upgrade')} disabled={working}>
+                Prefere revisar antes?{' '}
+                <button type="button" className="text-link inline" onClick={() => navigate('/checkout')} disabled={working}>
+                  Abrir checkout
+                </button>
+                {' '}ou{' '}
+                <button type="button" className="text-link inline" onClick={simulatePremium} disabled={working}>
                   Ativar Premium direto (simulado)
                 </button>
               </p>
