@@ -15,8 +15,16 @@ export const connectDatabase = async () => {
 
     await mongoose.connect(mongoUri);
 
-    console.log('MongoDB conectado 🚀');
+    console.log('MongoDB conectado');
   } catch (error) {
-    console.error('Erro ao conectar no MongoDB:', error);
+    if (error instanceof Error) {
+      console.error('Erro ao conectar MongoDB:', {
+        message: error.message,
+        stack: error.stack,
+      });
+      return;
+    }
+
+    console.error('Erro ao conectar MongoDB:', error);
   }
 };

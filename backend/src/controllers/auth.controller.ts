@@ -6,6 +6,23 @@ import jwt from 'jsonwebtoken';
 
 import User, { IUser } from '../models/User';
 
+const logServerError = (context: string, error: unknown) => {
+  if (error instanceof Error) {
+    console.error(context, {
+      message: error.message,
+      stack: error.stack,
+    });
+    return;
+  }
+
+  console.error(context, error);
+};
+
+const serverErrorResponse = (message: string) => ({
+  message,
+  error: process.env.NODE_ENV === 'production' ? undefined : 'Consulte os logs do servidor para detalhes.',
+});
+
 const removePassword = (user: IUser) => {
   // Nunca devolvemos a senha para o cliente, mesmo quando ela esta criptografada.
   const { senha: _senha, ...userWithoutPassword } = user.toObject();
@@ -44,10 +61,8 @@ export const register = async (request: Request, response: Response) => {
 
     return response.status(201).json(removePassword(user));
   } catch (error) {
-    return response.status(500).json({
-      message: 'Erro ao cadastrar usuario.',
-      error,
-    });
+    logServerError('Erro ao cadastrar usuario:', error);
+    return response.status(500).json(serverErrorResponse('Erro ao cadastrar usuario.'));
   }
 };
 
@@ -67,19 +82,20 @@ export const login = async (request: Request, response: Response) => {
     const user = await User.findOne({ email: normalizedEmail }).select('+senha');
 
     if (!user) {
-      return response.status(401).json({ message: 'Email ou senha invalidos.' });
+      return response.status(401).json({ message: 'Credenciais invalidas.' });
     }
 
     const passwordMatches = await bcrypt.compare(senha, user.senha);
 
     if (!passwordMatches) {
-      return response.status(401).json({ message: 'Email ou senha invalidos.' });
+      return response.status(401).json({ message: 'Credenciais invalidas.' });
     }
 
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!jwtSecret) {
-      return response.status(500).json({ message: 'JWT_SECRET nao foi definido.' });
+      console.error('Erro no login: JWT_SECRET nao foi definido no ambiente.');
+      return response.status(500).json({ message: 'Erro de configuracao do servidor.' });
     }
 
     // O token guarda o id do usuario para autenticar as proximas requisicoes.
@@ -92,10 +108,8 @@ export const login = async (request: Request, response: Response) => {
       user: removePassword(user),
     });
   } catch (error) {
-    return response.status(500).json({
-      message: 'Erro ao fazer login.',
-      error,
-    });
+    logServerError('Erro no login:', error);
+    return response.status(500).json(serverErrorResponse('Erro ao fazer login.'));
   }
 };
 
@@ -137,7 +151,8 @@ export const forgotPassword = async (request: Request, response: Response) => {
       ...(isProduction ? {} : { token, resetUrl: `/redefinir-senha/${token}` }),
     });
   } catch (error) {
-    return response.status(500).json({ message: 'Erro ao solicitar recuperacao de senha.', error });
+    logServerError('Erro ao solicitar recuperacao de senha:', error);
+    return response.status(500).json(serverErrorResponse('Erro ao solicitar recuperacao de senha.'));
   }
 };
 
@@ -169,6 +184,7 @@ export const resetPassword = async (request: Request, response: Response) => {
 
     return response.json({ message: 'Senha redefinida com sucesso.' });
   } catch (error) {
-    return response.status(500).json({ message: 'Erro ao redefinir senha.', error });
+    logServerError('Erro ao redefinir senha:', error);
+    return response.status(500).json(serverErrorResponse('Erro ao redefinir senha.'));
   }
 };

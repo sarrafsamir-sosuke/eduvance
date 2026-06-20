@@ -40,6 +40,17 @@ No deploy:
 - Railway/backend: configure `MERCADO_PAGO_ACCESS_TOKEN` com a credencial privada do Mercado Pago.
 - Vercel/frontend: configure `VITE_API_URL=https://sua-api.up.railway.app/api`.
 
+Para Render, use as mesmas variaveis do backend:
+
+- `MONGO_URI`
+- `JWT_SECRET`
+- `FRONTEND_URL`
+- `BACKEND_URL`
+- `MERCADO_PAGO_ACCESS_TOKEN`
+- `EDUAI_MODE=mock`
+
+Se o MongoDB Atlas bloquear conexoes do Render, libere temporariamente `0.0.0.0/0` em Network Access para validar.
+
 ## Como rodar o backend
 
 Modo desenvolvimento:
@@ -166,3 +177,35 @@ GET /api/admin/ranking
 ## Documentação completa
 
 Veja [API.md](./API.md) para exemplos de body e resposta de cada rota.
+
+## Seed em producao
+
+Rode o seed apenas em ambiente seguro com `MONGO_URI` e `JWT_SECRET` configurados. No PowerShell local:
+
+```powershell
+$env:MONGO_URI="sua_string_do_mongodb"
+$env:JWT_SECRET="seu_segredo"
+npm run seed
+```
+
+## Smoke test online
+
+Para validar a API publicada:
+
+```bash
+API_URL=https://eduvance-backend-jy4g.onrender.com/api npm run smoke:test
+```
+
+No PowerShell:
+
+```powershell
+$env:API_URL="https://eduvance-backend-jy4g.onrender.com/api"
+npm run smoke:test
+```
+
+O teste de simulacao de pagamento nao roda por padrao porque altera o plano do usuario. Para executar:
+
+```powershell
+$env:SMOKE_SIMULATE_PAYMENT="true"
+npm run smoke:test
+```
