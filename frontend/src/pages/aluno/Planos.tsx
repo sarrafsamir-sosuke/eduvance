@@ -158,6 +158,11 @@ export function AlunoPlanosPage() {
                     Assinar Premium
                   </Button>
                 )}
+                {!isPremium ? (
+                  <p style={{ fontSize: '0.78rem', color: 'var(--muted)', textAlign: 'center', marginTop: 8 }}>
+                    Pix e cartão via Mercado Pago
+                  </p>
+                ) : null}
               </article>
             </div>
 

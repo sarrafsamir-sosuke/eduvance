@@ -7,7 +7,11 @@ import User from '../models/User';
 import { getAiLimitByPlan } from '../utils/plan';
 
 const PREMIUM_PLAN = 'premium';
-const PREMIUM_PRICE = 49;
+
+function getPremiumPrice(): number {
+  const envPrice = Number(process.env.PREMIUM_PRICE);
+  return envPrice > 0 ? envPrice : 49;
+}
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -145,7 +149,7 @@ export const createPremiumCheckout = async (request: Request, response: Response
             id: 'eduvance-premium',
             title: 'EduVance Premium',
             quantity: 1,
-            unit_price: PREMIUM_PRICE,
+            unit_price: getPremiumPrice(),
             currency_id: 'BRL',
           },
         ],
@@ -180,7 +184,7 @@ export const createPremiumCheckout = async (request: Request, response: Response
     const payment = await PaymentModel.create({
       user: request.user._id,
       plano: PREMIUM_PLAN,
-      valor: PREMIUM_PRICE,
+      valor: getPremiumPrice(),
       status: 'pending',
       mercadoPagoPreferenceId: mercadoPagoPreference.id,
       checkoutUrl,
@@ -287,7 +291,7 @@ export const simulatePaymentApproved = async (request: Request, response: Respon
     const payment = await PaymentModel.create({
       user: request.user._id,
       plano: PREMIUM_PLAN,
-      valor: PREMIUM_PRICE,
+      valor: getPremiumPrice(),
       status: 'approved',
       externalReference: request.user._id.toString(),
       raw: {

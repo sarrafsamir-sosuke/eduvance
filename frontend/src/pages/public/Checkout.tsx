@@ -76,7 +76,7 @@ export function CheckoutPage() {
           <section className="checkout-block">
             <h2>EduVance Premium</h2>
             <p className="checkout-alt">
-              O pagamento sera processado pelo Mercado Pago Checkout Pro. O EduVance nao coleta nem armazena dados de cartao.
+              Pagamento seguro via Mercado Pago. Pix e cartão disponíveis conforme sua conta Mercado Pago. O EduVance não coleta nem armazena dados de pagamento.
             </p>
           </section>
 
@@ -115,13 +115,13 @@ export function CheckoutPage() {
           </div>
 
           <Button full loading={loadingCheckout} disabled={isPremium || loadingSimulation} onClick={handleMercadoPagoCheckout}>
-            {isPremium ? 'Premium ativo' : 'Ir para pagamento'} <Icon name="arrowRight" size={18} />
+            {isPremium ? 'Premium ativo' : 'Pagar com Mercado Pago'} <Icon name="arrowRight" size={18} />
           </Button>
           <Button full variant="outline" loading={loadingSimulation} disabled={isPremium || loadingCheckout} onClick={handleSimulation}>
-            Ativar Premium simulado
+            Ativar Premium direto (simulado)
           </Button>
           <p className="checkout-guarantee">
-            <Icon name="shield" size={14} /> Processado pelo Mercado Pago Checkout Pro
+            <Icon name="shield" size={14} /> Pix e cartão via Mercado Pago
           </p>
         </aside>
       </div>

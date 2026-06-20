@@ -68,6 +68,7 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -185,7 +186,7 @@ svg.icon { flex: 0 0 auto; transition: transform 200ms ease; }
 .brand-mark { display: inline-flex; }
 
 /* ============================ PUBLIC LAYOUT ============================ */
-.public-shell { display: flex; flex-direction: column; min-height: 100vh; }
+.public-shell { display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
 .public-header {
   align-items: center; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line); display: flex; gap: 24px; justify-content: space-between;
@@ -217,7 +218,7 @@ html.dark .public-footer { background: #060a14; }
 .hero-copy h1 { font-size: 3.4rem; margin: 18px 0; }
 .hero-copy > p { color: var(--muted); font-size: 1.08rem; max-width: 460px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
-.hero-metrics { border-top: 1px solid var(--line); display: flex; gap: 40px; margin-top: 36px; padding-top: 22px; }
+.hero-metrics { border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 40px; margin-top: 36px; padding-top: 22px; }
 .hero-metrics strong { display: block; font-size: 1.5rem; font-weight: 800; }
 .hero-metrics span { color: var(--muted); font-size: 0.85rem; }
 .hero-visual { position: relative; display: flex; justify-content: center; }
@@ -307,7 +308,7 @@ html.dark .public-footer { background: #060a14; }
 .notfound-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
 /* ============================ APP LAYOUT ============================ */
-.app-shell { display: flex; min-height: 100vh; }
+.app-shell { display: flex; min-height: 100vh; overflow-x: hidden; }
 .app-sidebar {
   background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border-right: 1px solid var(--line); display: flex; flex-direction: column;
@@ -397,7 +398,7 @@ html.dark .filter-row button.active { background: var(--blue); border-color: var
 .level-badge { align-items: center; background: rgba(255, 255, 255, 0.18); border-radius: 14px; display: inline-flex; height: 50px; justify-content: center; width: 50px; }
 .level-banner-label small { color: rgba(255, 255, 255, 0.75); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .level-banner-label strong { display: block; font-size: 1.5rem; font-weight: 800; }
-.level-progress { flex: 1; min-width: 220px; }
+.level-progress { flex: 1; min-width: 0; }
 .level-progress .xp-row { color: rgba(255, 255, 255, 0.85); }
 .level-progress .xp-row span { color: rgba(255, 255, 255, 0.85); }
 .level-progress .progress-track { background: rgba(255, 255, 255, 0.25); }
@@ -715,7 +716,7 @@ html.dark .lesson-item.is-done { background: rgba(22, 163, 74, 0.12); }
 .billing-badge { background: var(--green-soft); border-radius: 999px; color: var(--green); font-size: 0.7rem; font-weight: 700; padding: 2px 7px; }
 .planos-grid { align-items: stretch; display: grid; gap: 22px; grid-template-columns: repeat(3, 1fr); max-width: 1040px; margin: 36px auto; padding: 0 40px; }
 .planos-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 820px; }
-.plano-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); display: flex; flex-direction: column; min-height: 430px; padding: 30px 28px 28px; position: relative; transition: transform 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 280ms ease, border-color 280ms ease; }
+.plano-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); display: flex; flex-direction: column; min-height: 430px; min-width: 0; padding: 30px 28px 28px; position: relative; transition: transform 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 280ms ease, border-color 280ms ease; word-break: break-word; }
 .plano-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
 .plano-card:active { transform: translateY(-2px) scale(0.995); }
 .plano-card.is-featured { border-color: var(--blue); box-shadow: var(--shadow-md); }
@@ -725,13 +726,13 @@ html.dark .lesson-item.is-done { background: rgba(22, 163, 74, 0.12); }
 .plano-badge.slate { background: var(--muted); }
 .plano-card h2 { font-size: 1.3rem; }
 .plano-tagline { color: var(--muted); font-size: 0.9rem; margin: 6px 0 18px; min-height: 22px; }
-.plano-price { align-items: baseline; display: flex; gap: 4px; margin-bottom: 18px; }
+.plano-price { align-items: baseline; display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px; white-space: nowrap; }
 .plano-price strong { color: var(--blue); font-size: 2.4rem; font-weight: 800; }
-.plano-price span { color: var(--muted); }
+.plano-price span { color: var(--muted); white-space: nowrap; }
 .plano-features { display: flex; flex: 1; flex-direction: column; gap: 12px; list-style: none; margin: 20px 0 0; padding: 0; }
-.plano-features li { align-items: center; color: var(--ink-2); display: flex; font-size: 0.9rem; gap: 10px; }
+.plano-features li { align-items: center; color: var(--ink-2); display: flex; font-size: 0.9rem; gap: 10px; min-width: 0; }
 .plano-features svg { color: var(--blue); flex: 0 0 auto; }
-.plano-card > .button { margin-top: 24px; }
+.plano-card > .button { margin-top: 24px; white-space: normal; }
 .faq-section { max-width: 720px; margin: 30px auto 0; padding: 0 40px 40px; }
 .faq-section h2 { font-size: 1.8rem; margin-bottom: 22px; text-align: center; }
 .faq-list { display: flex; flex-direction: column; gap: 12px; }
@@ -749,7 +750,7 @@ html.dark .lesson-item.is-done { background: rgba(22, 163, 74, 0.12); }
 .plan-current-icon { align-items: center; background: rgba(255, 255, 255, 0.16); border-radius: 16px; display: inline-flex; height: 56px; justify-content: center; width: 56px; }
 .plan-quick { color: var(--muted); margin-top: 18px; text-align: center; }
 
-.checkout-page { background: var(--page); min-height: 100vh; }
+.checkout-page { background: var(--page); min-height: 100vh; overflow-x: hidden; }
 .checkout-header { align-items: center; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding: 16px 40px; }
 .checkout-secure { align-items: center; background: var(--green-soft); border-radius: 999px; color: var(--green); display: inline-flex; font-size: 0.8rem; font-weight: 600; gap: 6px; padding: 6px 14px; }
 .checkout-body { display: grid; gap: 26px; grid-template-columns: 1.5fr 1fr; max-width: 1040px; margin: 0 auto; padding: 36px 40px; align-items: start; }
@@ -1043,11 +1044,21 @@ html.dark .lesson-item.is-done { background: rgba(22, 163, 74, 0.12); }
 
 @media (max-width: 480px) {
   .stats-grid, .admin-stats, .profile-stats { grid-template-columns: 1fr; }
-  .hero-metrics { gap: 24px; }
+  .hero-metrics { gap: 20px; flex-direction: column; }
   .landing-cta, .page-header { flex-direction: column; align-items: flex-start; }
   .achievement-list { grid-template-columns: 1fr; }
   .aula-actions { width: 100%; }
   .aula-actions .button { width: 100%; }
+  .plano-price strong { font-size: 2rem; }
+  .plano-card { padding: 24px 20px 22px; }
+  .checkout-plan-card { padding: 16px; }
+  .checkout-summary { padding: 18px; }
+  .hero-copy h1 { font-size: 2rem; }
+  .hero-actions { flex-direction: column; }
+  .hero-actions .button { width: 100%; }
+  .landing-cta-actions { flex-direction: column; width: 100%; }
+  .landing-cta-actions .button { width: 100%; }
+  .plan-current { flex-direction: column; gap: 12px; text-align: center; }
 }
 
 /* Accessibility: respect reduced motion preference */
