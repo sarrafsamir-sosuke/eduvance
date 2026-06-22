@@ -117,7 +117,7 @@ export const perguntarEduAI = async (request: Request, response: Response) => {
     });
   } catch (error) {
     return response.status(500).json({
-      message: 'Erro ao perguntar para a EduAI.',
+      message: 'Não foi possível gerar uma resposta agora. Tente novamente em alguns instantes.',
       error,
     });
   }

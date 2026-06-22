@@ -2,6 +2,7 @@ import path from 'path';
 
 import cors from 'cors';
 import express from 'express';
+import helmet from 'helmet';
 
 import adminRoutes from './routes/admin.routes';
 import authRoutes from './routes/auth.routes';
@@ -12,8 +13,25 @@ import paymentRoutes from './routes/payment.routes';
 import planoRoutes from './routes/plano.routes';
 import progressoRoutes from './routes/progresso.routes';
 import quizRoutes from './routes/quiz.routes';
+import {
+  authRateLimiter,
+  eduaiRateLimiter,
+  generalRateLimiter,
+  paymentsRateLimiter,
+} from './middlewares/security.middleware';
 
 const app = express();
+
+// Necessario para rate-limit detectar o IP real atras de proxy (Vercel, Render etc.).
+app.set('trust proxy', 1);
+
+// Cabecalhos HTTP de seguranca (sem CSP estrito para nao quebrar uploads/videos).
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+);
 
 const defaultOrigins = [
   'http://localhost:5180',
@@ -38,9 +56,19 @@ app.use(
   }),
 );
 
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '1mb' }));
 
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Limite geral aplicado em todas as rotas /api.
+app.use('/api', generalRateLimiter);
+
+// Rotas sensiveis tem limite extra (somam ao geral).
+app.use('/api/auth/login', authRateLimiter);
+app.use('/api/auth/register', authRateLimiter);
+app.use('/api/auth/forgot-password', authRateLimiter);
+app.use('/api/eduai/perguntar', eduaiRateLimiter);
+app.use('/api/payments/create-checkout', paymentsRateLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/disciplinas', disciplinaRoutes);

@@ -32,13 +32,22 @@ const removePassword = (user: IUser) => {
 
 export const register = async (request: Request, response: Response) => {
   try {
-    const { nome, email, senha, tipo, turma, matricula } = request.body;
+    const { nome, email, senha, turma, matricula } = request.body;
 
-    if (!nome || !email || !senha || !tipo) {
+    if (!nome || !email || !senha) {
       return response.status(400).json({
-        message: 'Nome, email, senha e tipo sao obrigatorios.',
+        message: 'Nome, email e senha sao obrigatorios.',
       });
     }
+
+    if (!String(nome).trim() || !String(email).trim() || !String(senha).trim()) {
+      return response.status(400).json({
+        message: 'Nome, email e senha nao podem ser vazios.',
+      });
+    }
+
+    // Cadastro publico sempre cria aluno. Professor e admin sao criados via seed/painel.
+    const tipo = 'aluno';
 
     const normalizedEmail = String(email).toLowerCase().trim();
     const userAlreadyExists = await User.findOne({ email: normalizedEmail });

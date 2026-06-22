@@ -1,4 +1,5 @@
-import OpenAI from 'openai';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_TIMEOUT_MS = 15000;
 
 const gerarRespostaMock = (pergunta: string, disciplinaContexto?: string) => {
   const contexto = disciplinaContexto
@@ -13,51 +14,71 @@ const gerarRespostaMock = (pergunta: string, disciplinaContexto?: string) => {
 };
 
 const SYSTEM_PROMPT = [
-  'Você é a EduAI, tutora educacional da plataforma EduVance.',
-  'Seu papel é ajudar alunos do ensino médio a entender conceitos de forma simples e didática.',
+  'Você é a EduAI, assistente educacional do EduVance.',
+  'Explique conteúdos escolares e técnicos de forma simples, clara e objetiva, para alunos do ensino médio/técnico.',
+  'Ajude o aluno a entender o assunto passo a passo. Quando possível, use exemplos práticos.',
   'Regras:',
   '- Responda sempre em português brasileiro.',
-  '- Explique de forma clara e objetiva, como se falasse com um estudante.',
-  '- Use exemplos práticos do dia a dia quando possível.',
-  '- Não dê respostas exageradamente longas. Seja concisa mas completa.',
+  '- Evite respostas muito longas. Seja concisa mas completa.',
   '- Se o aluno pedir resposta pronta de prova, explique o raciocínio em vez de dar a resposta direta.',
   '- Se uma disciplina for informada, contextualize a explicação por ela.',
   '- Use formatação simples (listas, negrito) quando ajudar na clareza.',
 ].join('\n');
 
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: string }>;
+    };
+  }>;
+}
+
 async function gerarRespostaReal(
   pergunta: string,
   disciplinaContexto?: string,
 ): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return gerarRespostaMock(pergunta, disciplinaContexto);
   }
 
-  const client = new OpenAI({ apiKey });
-
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const userMessage = disciplinaContexto
     ? `[Disciplina: ${disciplinaContexto}]\n\n${pergunta}`
     : pergunta;
 
-  const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: userMessage },
-    ],
-    max_tokens: 1024,
-    temperature: 0.7,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
-  const resposta = completion.choices[0]?.message?.content?.trim();
+  try {
+    const response = await fetch(`${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+      }),
+    });
 
-  if (!resposta) {
-    return gerarRespostaMock(pergunta, disciplinaContexto);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Gemini respondeu ${response.status}: ${errorBody.slice(0, 300)}`);
+    }
+
+    const data = (await response.json()) as GeminiResponse;
+    const resposta = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    if (!resposta) {
+      throw new Error('Gemini nao retornou texto na resposta.');
+    }
+
+    return resposta;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return resposta;
 }
 
 export const gerarRespostaEduAI = async (

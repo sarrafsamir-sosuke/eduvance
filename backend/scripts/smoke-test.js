@@ -220,8 +220,20 @@ async function run() {
           disciplina: 'Matematica',
         }),
       }, { token: studentToken });
-      expectOk(result, 'POST /api/eduai/perguntar');
-      record('pass', 'POST /api/eduai/perguntar');
+
+      if (result.ok) {
+        record('pass', 'POST /api/eduai/perguntar');
+        return;
+      }
+
+      const detail = describeResponse(result.data);
+
+      if (/limite de perguntas/i.test(detail)) {
+        record('warn', 'POST /api/eduai/perguntar', 'limite diario do usuario de teste ja atingido');
+        return;
+      }
+
+      throw new Error(`status ${result.status}: ${detail}`);
     });
 
     await test('POST /api/payments/create-checkout', async () => {
