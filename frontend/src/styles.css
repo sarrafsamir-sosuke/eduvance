@@ -688,10 +688,10 @@ html.dark .lesson-item.is-done { background: rgba(22, 163, 74, 0.12); }
 .eduai-welcome { align-items: center; display: flex; flex-direction: column; gap: 10px; margin: auto; text-align: center; }
 .eduai-welcome h2 { font-size: 1.3rem; }
 .eduai-welcome p { color: var(--muted); }
-.eduai-msg { display: flex; gap: 10px; max-width: 78%; }
+.eduai-msg { display: flex; gap: 10px; max-width: 78%; min-width: 0; }
 .eduai-msg.user { align-self: flex-end; }
 .eduai-msg.assistant { align-self: flex-start; }
-.eduai-bubble { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; line-height: 1.55; padding: 14px 18px; white-space: pre-wrap; }
+.eduai-bubble { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; line-height: 1.55; overflow-wrap: anywhere; padding: 14px 18px; white-space: pre-line; }
 .eduai-msg.user .eduai-bubble { background: var(--blue); border-color: var(--blue); color: #fff; }
 .eduai-typing { align-items: center; display: flex; gap: 5px; }
 .eduai-typing span { background: var(--muted-2); border-radius: 50%; height: 7px; width: 7px; animation: blink 1.2s infinite; }

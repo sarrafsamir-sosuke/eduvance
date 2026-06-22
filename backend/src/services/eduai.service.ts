@@ -19,15 +19,67 @@ const gerarRespostaMock = (pergunta: string, disciplinaContexto?: string) => {
 
 const SYSTEM_PROMPT = [
   'Você é a EduAI, assistente educacional do EduVance.',
-  'Explique conteúdos escolares e técnicos de forma simples, clara e objetiva, para alunos do ensino médio/técnico.',
-  'Ajude o aluno a entender o assunto passo a passo. Quando possível, use exemplos práticos.',
+  'Responda em português brasileiro, com linguagem simples, clara e objetiva.',
+  "Use vocabulário e ortografia do Brasil. Por exemplo: escreva 'frações', não 'fracções'.",
+  'Explique conteúdos escolares e técnicos de forma didática, como para um aluno do ensino médio/técnico.',
   'Regras:',
-  '- Responda sempre em português brasileiro.',
-  '- Evite respostas muito longas. Seja concisa mas completa.',
+  "- Não use tabelas em Markdown e não use pipes '|'.",
+  "- Não use títulos com '##'.",
+  '- Evite excesso de negrito, asteriscos ou outros marcadores visuais.',
+  '- Não use blocos de código, exceto quando o aluno pedir programação.',
+  '- Prefira parágrafos curtos e listas simples com hífen quando necessário.',
+  '- Evite respostas muito longas. Seja objetiva, clara e educacional.',
+  '- Quando possível, use exemplos práticos.',
   '- Se o aluno pedir resposta pronta de prova, explique o raciocínio em vez de dar a resposta direta.',
   '- Se uma disciplina for informada, contextualize a explicação por ela.',
-  '- Use formatação simples (listas, negrito) quando ajudar na clareza.',
 ].join('\n');
+
+const TABLE_SEPARATOR_PATTERN = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/;
+
+const cleanAIResponse = (text: string): string => {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+
+  const cleanedLines = lines.map((rawLine) => {
+    let line = rawLine.trimEnd();
+
+    if (TABLE_SEPARATOR_PATTERN.test(line)) {
+      return '';
+    }
+
+    line = line
+      .replace(/^#{1,6}\s*/, '')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/`{3,}\w*/g, '')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/^(\s*)\*\s+/, '$1- ')
+      .replace(/^\s*>\s?/, '');
+
+    if (line.includes('|')) {
+      const tableCells = line.split('|').map((cell) => cell.trim()).filter(Boolean);
+
+      if (tableCells.length === 2) {
+        line = `${tableCells[0]}: ${tableCells[1]}`;
+      } else if (tableCells.length > 2) {
+        line = `- ${tableCells.join(' - ')}`;
+      } else {
+        line = line.replace(/\s*\|\s*/g, ' ');
+      }
+    }
+
+    return line
+      .replace(/\*\*/g, '')
+      .replace(/#{2,}/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trimEnd();
+  });
+
+  return cleanedLines
+    .join('\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
 
 interface GeminiResponse {
   candidates?: Array<{
@@ -150,8 +202,7 @@ async function gerarRespostaOpenRouter(
         messages: [
           {
             role: 'system',
-            content:
-              'Você é a EduAI, assistente educacional do EduVance. Explique conteúdos escolares e técnicos de forma simples, clara e objetiva. Ajude o aluno a entender o assunto passo a passo. Evite respostas muito longas. Quando possível, use exemplos práticos.',
+            content: SYSTEM_PROMPT,
           },
           {
             role: 'user',
@@ -177,7 +228,13 @@ async function gerarRespostaOpenRouter(
       throw new ProviderRequestError('OpenRouter nao retornou texto na resposta.');
     }
 
-    return resposta;
+    const respostaLimpa = cleanAIResponse(resposta);
+
+    if (!respostaLimpa) {
+      throw new ProviderRequestError('OpenRouter retornou texto vazio apos limpeza.');
+    }
+
+    return respostaLimpa;
   } finally {
     clearTimeout(timeout);
   }
@@ -224,7 +281,13 @@ async function gerarRespostaGemini(
       throw new ProviderRequestError('Gemini nao retornou texto na resposta.');
     }
 
-    return resposta;
+    const respostaLimpa = cleanAIResponse(resposta);
+
+    if (!respostaLimpa) {
+      throw new ProviderRequestError('Gemini retornou texto vazio apos limpeza.');
+    }
+
+    return respostaLimpa;
   } finally {
     clearTimeout(timeout);
   }
@@ -237,13 +300,13 @@ export const gerarRespostaEduAI = async (
   const mode = normalizeEnv(process.env.EDUAI_MODE) || 'mock';
 
   if (mode !== 'real') {
-    return gerarRespostaMock(pergunta, disciplinaContexto);
+    return cleanAIResponse(gerarRespostaMock(pergunta, disciplinaContexto));
   }
 
   const provider = resolveProvider();
 
   if (provider === 'mock') {
-    return gerarRespostaMock(pergunta, disciplinaContexto);
+    return cleanAIResponse(gerarRespostaMock(pergunta, disciplinaContexto));
   }
 
   try {
@@ -254,6 +317,6 @@ export const gerarRespostaEduAI = async (
     return await gerarRespostaGemini(pergunta, disciplinaContexto);
   } catch (error) {
     logProviderFallback(provider, error);
-    return gerarRespostaMock(pergunta, disciplinaContexto);
+    return cleanAIResponse(gerarRespostaMock(pergunta, disciplinaContexto));
   }
 };
