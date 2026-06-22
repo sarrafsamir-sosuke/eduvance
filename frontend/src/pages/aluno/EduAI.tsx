@@ -103,7 +103,7 @@ export function EduAIPage() {
       );
       loadConversas();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Não foi possível falar com a EduAI agora.'));
+      setError(getApiErrorMessage(err, 'Não foi possível gerar uma resposta agora. Tente novamente em alguns instantes.'));
       setMessages((prev) => prev.slice(0, -1)); // desfaz a pergunta otimista
       setPergunta(text);
     } finally {

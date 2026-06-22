@@ -135,7 +135,8 @@ export function AulaPage() {
                   <span className="video-play" aria-hidden="true">
                     <Icon name="play" size={28} />
                   </span>
-                  <p>Vídeo em breve</p>
+                  <p>Vídeo da aula ainda não disponível.</p>
+                  <small style={{ color: 'var(--muted)' }}>Use o conteúdo textual para estudar.</small>
                 </div>
               )}
             </div>

@@ -1,30 +1,23 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { AuthLayout } from '../../components/layouts/AuthLayout';
 import { Button, Input } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { getApiErrorMessage } from '../../lib/api';
-import type { UserType } from '../../lib/types';
 
 export function CadastroPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const initialTipo: UserType = params.get('tipo') === 'professor' ? 'professor' : 'aluno';
 
-  const [tipo, setTipo] = useState<UserType>(initialTipo);
   const [form, setForm] = useState({
     nome: '',
     email: '',
-    area: '',
     senha: '',
     confirmarSenha: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const isProfessor = tipo === 'professor';
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,8 +42,7 @@ export function CadastroPage() {
         nome: form.nome.trim(),
         email: form.email,
         senha: form.senha,
-        tipo,
-        turma: isProfessor && form.area.trim() ? form.area.trim() : undefined,
+        tipo: 'aluno',
       });
       navigate('/login', {
         replace: true,
@@ -65,38 +57,13 @@ export function CadastroPage() {
 
   return (
     <AuthLayout
-      title={isProfessor ? 'Organize turmas, aulas e progresso.' : 'Transforme o aprendizado em uma jornada épica.'}
-      subtitle={
-        isProfessor
-          ? 'Ferramentas simples para acompanhar seus alunos.'
-          : 'Ganhe XP, conclua aulas e acompanhe sua evolução.'
-      }
+      title="Transforme o aprendizado em uma jornada épica."
+      subtitle="Ganhe XP, conclua aulas e acompanhe sua evolução."
     >
       <form className="auth-form" onSubmit={handleSubmit}>
         <div className="auth-form-heading">
           <h1>Criar conta</h1>
-          <p>Junte-se ao EduVance como {isProfessor ? 'professor' : 'aluno'}.</p>
-        </div>
-
-        <div className="role-switch" role="tablist" aria-label="Tipo de conta">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isProfessor}
-            className={!isProfessor ? 'active' : ''}
-            onClick={() => setTipo('aluno')}
-          >
-            Aluno
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isProfessor}
-            className={isProfessor ? 'active' : ''}
-            onClick={() => setTipo('professor')}
-          >
-            Professor
-          </button>
+          <p>Junte-se ao EduVance como aluno.</p>
         </div>
 
         <Input
@@ -109,22 +76,13 @@ export function CadastroPage() {
         />
         <Input
           icon="mail"
-          label={isProfessor ? 'E-mail institucional' : 'E-mail'}
+          label="E-mail"
           onChange={(event) => setForm({ ...form, email: event.target.value })}
-          placeholder={isProfessor ? 'professor@email.com' : 'seu@email.com'}
+          placeholder="seu@email.com"
           required
           type="email"
           value={form.email}
         />
-        {isProfessor ? (
-          <Input
-            icon="book"
-            label="Disciplina ou área de atuação"
-            onChange={(event) => setForm({ ...form, area: event.target.value })}
-            placeholder="Matemática, Biologia, Tecnologia..."
-            value={form.area}
-          />
-        ) : null}
         <Input
           icon="lock"
           label="Senha"

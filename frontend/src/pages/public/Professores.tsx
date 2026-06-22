@@ -46,7 +46,7 @@ export function ProfessoresPage() {
             cada aluno em tempo real.
           </p>
           <div className="hero-actions">
-            <Button onClick={() => navigate('/cadastro?tipo=professor')}>Solicitar demonstração</Button>
+            <Button onClick={() => navigate('/sobre')}>Solicitar demonstração</Button>
             <Button variant="outline" onClick={() => navigate('/planos')}>
               Ver planos
             </Button>
@@ -92,9 +92,9 @@ export function ProfessoresPage() {
         <h2 className="display">Pronto para transformar sua sala de aula?</h2>
         <p>Junte-se a escolas que já usam o EduVance para elevar o padrão de ensino.</p>
         <div className="landing-cta-actions">
-          <Button onClick={() => navigate('/cadastro?tipo=professor')}>Testar grátis por 30 dias</Button>
-          <Button variant="outline" onClick={() => navigate('/login-professor')}>
-            Já sou professor
+          <Button onClick={() => navigate('/sobre')}>Falar com a equipe</Button>
+          <Button variant="outline" onClick={() => navigate('/login')}>
+            Já tenho conta
           </Button>
         </div>
       </section>

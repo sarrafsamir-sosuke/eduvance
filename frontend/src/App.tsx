@@ -56,7 +56,8 @@ export default function App() {
       {/* Público */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/login-professor" element={<LoginPage professor />} />
+      {/* Login de professor nao tem mais tela publica dedicada. Redireciona ao login normal. */}
+      <Route path="/login-professor" element={<Navigate to="/login" replace />} />
       <Route path="/cadastro" element={<CadastroPage />} />
       <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
       <Route path="/redefinir-senha/:token" element={<RedefinirSenhaPage />} />

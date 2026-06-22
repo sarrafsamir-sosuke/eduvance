@@ -112,7 +112,6 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <div>
               <strong>Acesso</strong>
               <Link to="/login">Entrar</Link>
-              <Link to="/login-professor">Login professor</Link>
               <Link to="/recuperar-senha">Recuperar senha</Link>
             </div>
           </div>

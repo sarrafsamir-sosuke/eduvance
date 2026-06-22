@@ -6,7 +6,7 @@ import { Button, Input } from '../../components/ui';
 import { homePathForUser, useAuth } from '../../context/AuthContext';
 import { getApiErrorMessage } from '../../lib/api';
 
-export function LoginPage({ professor = false }: { professor?: boolean }) {
+export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,16 +36,12 @@ export function LoginPage({ professor = false }: { professor?: boolean }) {
 
   return (
     <AuthLayout
-      title={professor ? 'Bem-vindo, professor.' : 'Volte para sua jornada de estudos.'}
-      subtitle={
-        professor
-          ? 'Acompanhe turmas, publique aulas e veja o progresso dos alunos.'
-          : 'Continue aulas, quizzes, progresso e conversas com a EduAI.'
-      }
+      title="Volte para sua jornada de estudos."
+      subtitle="Continue aulas, quizzes, progresso e conversas com a EduAI."
     >
       <form className="auth-form auth-form-compact" onSubmit={handleSubmit}>
         <div className="auth-form-heading">
-          <h1>{professor ? 'Entrar como professor' : 'Entrar'}</h1>
+          <h1>Entrar</h1>
           <p>Acesse sua conta EduVance.</p>
         </div>
 
@@ -77,17 +73,6 @@ export function LoginPage({ professor = false }: { professor?: boolean }) {
 
         <p className="auth-link-row">
           Esqueceu a senha? <Link to="/recuperar-senha">Recuperar</Link>
-        </p>
-        <p className="auth-link-row">
-          {professor ? (
-            <>
-              É aluno? <Link to="/login">Entrar como aluno</Link>
-            </>
-          ) : (
-            <>
-              É professor? <Link to="/login-professor">Entrar como professor</Link>
-            </>
-          )}
         </p>
         <p className="auth-link-row">
           Ainda não tem conta? <Link to="/cadastro">Criar conta</Link>
