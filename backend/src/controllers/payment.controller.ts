@@ -10,7 +10,7 @@ const PREMIUM_PLAN = 'premium';
 
 function getPremiumPrice(): number {
   const envPrice = Number(process.env.PREMIUM_PRICE);
-  return envPrice > 0 ? envPrice : 49;
+  return envPrice > 0 ? envPrice : 5;
 }
 
 type UnknownRecord = Record<string, unknown>;
@@ -25,6 +25,10 @@ function getFrontendUrl() {
 
 function getBackendUrl() {
   return cleanUrl(process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3333}`);
+}
+
+function isHttpsUrl(url: string) {
+  return /^https:\/\//i.test(url);
 }
 
 function getMercadoPagoClients() {
@@ -142,6 +146,15 @@ export const createPremiumCheckout = async (request: Request, response: Response
     const backendUrl = getBackendUrl();
     const externalReference = request.user._id.toString();
 
+    const notificationUrl = isHttpsUrl(backendUrl) ? `${backendUrl}/api/payments/webhook` : undefined;
+
+    if (!notificationUrl) {
+      console.warn(
+        `[payments] BACKEND_URL ("${backendUrl}") nao esta em HTTPS; notification_url nao sera enviado ao Mercado Pago. ` +
+          'Configure BACKEND_URL com https:// em producao para o webhook funcionar automaticamente.',
+      );
+    }
+
     const mercadoPagoPreference = await preference.create({
       body: {
         items: [
@@ -158,7 +171,7 @@ export const createPremiumCheckout = async (request: Request, response: Response
           email: request.user.email,
         },
         external_reference: externalReference,
-        notification_url: `${backendUrl}/api/payments/webhook`,
+        ...(notificationUrl ? { notification_url: notificationUrl } : {}),
         back_urls: {
           success: `${frontendUrl}/pagamento-efetuado`,
           failure: `${frontendUrl}/pagamento-falhou`,
@@ -195,6 +208,7 @@ export const createPremiumCheckout = async (request: Request, response: Response
     return response.status(201).json({
       checkoutUrl,
       preferenceId: mercadoPagoPreference.id,
+      paymentId: payment._id,
       payment,
     });
   } catch (error) {
@@ -207,20 +221,31 @@ export const createPremiumCheckout = async (request: Request, response: Response
 
 export const mercadoPagoWebhook = async (request: Request, response: Response) => {
   try {
-    console.log('Mercado Pago webhook recebido:', {
+    console.log('[payments] Webhook Mercado Pago recebido:', {
       query: request.query,
       body: request.body,
     });
 
     const paymentId = extractPaymentId(request);
 
-    if (paymentId) {
-      await updateLocalPaymentFromMercadoPago(paymentId);
+    if (!paymentId) {
+      console.warn('[payments] Webhook recebido sem paymentId identificavel; payload ignorado.');
+      return response.status(200).json({ received: true });
     }
+
+    const { status, localPayment } = await updateLocalPaymentFromMercadoPago(paymentId);
+
+    console.log('[payments] Webhook processado:', {
+      mercadoPagoPaymentId: paymentId,
+      status,
+      localPaymentId: localPayment?._id,
+      user: localPayment?.user,
+    });
 
     return response.status(200).json({ received: true });
   } catch (error) {
-    console.error('Erro ao processar webhook Mercado Pago:', error);
+    console.error('[payments] Erro ao processar webhook Mercado Pago:', error);
+    // Sempre 200: evita que o Mercado Pago fique reenviando o mesmo evento indefinidamente.
     return response.status(200).json({ received: true });
   }
 };
@@ -276,8 +301,16 @@ export const checkPaymentStatus = async (request: Request, response: Response) =
   }
 };
 
+// Rota exclusiva para ambiente de teste/desenvolvimento: ativa o Premium sem
+// passar pelo Mercado Pago. Nunca deve ficar acessivel em producao.
 export const simulatePaymentApproved = async (request: Request, response: Response) => {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return response.status(403).json({
+        message: 'Simulacao de pagamento desabilitada em producao. Use o checkout real do Mercado Pago.',
+      });
+    }
+
     if (!request.user) {
       return response.status(401).json({ message: 'Usuario nao autenticado.' });
     }

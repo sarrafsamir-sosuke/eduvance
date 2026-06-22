@@ -19,7 +19,7 @@ const PLANOS = [
   {
     id: 'premium',
     nome: 'Premium',
-    preco: 'R$ 49',
+    preco: 'R$ 5',
     tagline: 'A experiência completa de gamificação.',
     destaque: true,
     cta: 'Assinar Premium',

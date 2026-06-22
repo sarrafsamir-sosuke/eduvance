@@ -141,7 +141,7 @@ export function AlunoPlanosPage() {
                 <h2>Premium</h2>
                 <p className="plano-tagline">A experiencia completa.</p>
                 <div className="plano-price">
-                  <strong>R$ 49</strong>
+                  <strong>R$ 5</strong>
                   <span>/mes</span>
                 </div>
                 <ul className="plano-features">

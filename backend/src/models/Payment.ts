@@ -27,7 +27,7 @@ const paymentSchema = new Schema<IPayment>(
     },
     valor: {
       type: Number,
-      default: 49,
+      default: 5,
     },
     status: {
       type: String,

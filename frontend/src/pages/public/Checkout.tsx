@@ -97,7 +97,7 @@ export function CheckoutPage() {
           <div className="checkout-plan-card">
             <span className="checkout-plan-label">Plano</span>
             <strong>EduVance Premium</strong>
-            <span className="checkout-plan-price">R$ 49/mes</span>
+            <span className="checkout-plan-price">R$ 5/mes</span>
             <ul>
               <li><Icon name="check" size={15} /> Acesso completo</li>
               <li><Icon name="check" size={15} /> Pagamento seguro fora da plataforma</li>
@@ -107,11 +107,11 @@ export function CheckoutPage() {
 
           <div className="checkout-line">
             <span>Subtotal</span>
-            <span>R$ 49,00</span>
+            <span>R$ 5,00</span>
           </div>
           <div className="checkout-total">
             <span>Total</span>
-            <strong>R$ 49,00</strong>
+            <strong>R$ 5,00</strong>
           </div>
 
           <Button full loading={loadingCheckout} disabled={isPremium || loadingSimulation} onClick={handleMercadoPagoCheckout}>

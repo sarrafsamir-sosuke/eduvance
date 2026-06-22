@@ -20,6 +20,7 @@ export interface PaymentRecord {
 export interface CreateCheckoutResponse {
   checkoutUrl: string;
   preferenceId?: string;
+  paymentId?: string;
   payment: PaymentRecord;
 }
 
