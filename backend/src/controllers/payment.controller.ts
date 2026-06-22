@@ -181,7 +181,9 @@ export const createPremiumCheckout = async (request: Request, response: Response
           userId: externalReference,
           plano: PREMIUM_PLAN,
         },
-        auto_return: 'approved',
+        // O Mercado Pago rejeita auto_return quando back_url.success nao e HTTPS
+        // (ex.: http://localhost em dev), entao so habilitamos em producao.
+        ...(isHttpsUrl(frontendUrl) ? { auto_return: 'approved' as const } : {}),
       },
       requestOptions: {
         idempotencyKey: `${externalReference}-${Date.now()}`,
